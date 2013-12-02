@@ -122,7 +122,7 @@ public class Log implements Callback {
 	 * @param parameters
 	 *            The parameters to be replaces with placeholder
 	 */
-	public static void t(Object object, String pattern, String... parameters) {
+	public static void t(Object object, String pattern, Object... parameters) {
 		getInstance().logImpl(TRACE, object, pattern, parameters);
 	}
 
@@ -160,7 +160,7 @@ public class Log implements Callback {
 	 * @param parameters
 	 *            The parameters to be replaces with placeholder
 	 */
-	public static void d(Object object, String pattern, String... parameters) {
+	public static void d(Object object, String pattern, Object... parameters) {
 		getInstance().logImpl(DEBUG, object, pattern, parameters);
 	}
 
@@ -200,7 +200,7 @@ public class Log implements Callback {
 	 * @param parameters
 	 *            The parameters to be replaces with placeholder
 	 */
-	public static void i(Object object, String pattern, String... parameters) {
+	public static void i(Object object, String pattern, Object... parameters) {
 		getInstance().logImpl(INFO, object, pattern, parameters);
 	}
 
@@ -248,7 +248,7 @@ public class Log implements Callback {
 	 * @param parameters
 	 *            The parameters to be replaces with placeholder
 	 */
-	public static void w(Object object, String pattern, String... parameters) {
+	public static void w(Object object, String pattern, Object... parameters) {
 		getInstance().logImpl(WARNING, object, pattern, parameters);
 	}
 
@@ -311,7 +311,7 @@ public class Log implements Callback {
 	 * @param parameters
 	 *            The parameters to be replaces with placeholder
 	 */
-	public static void e(Object object, String pattern, String... parameters) {
+	public static void e(Object object, String pattern, Object... parameters) {
 		getInstance().logImpl(ERROR, object, pattern, parameters);
 	}
 
@@ -385,7 +385,7 @@ public class Log implements Callback {
 		logImpl(logEntry);
 	}
 
-	private void logImpl(int type, Object object, String pattern, String... parameters) {
+	private void logImpl(int type, Object object, String pattern, Object... parameters) {
 
 		LogEntry logEntry = new LogEntry();
 		logEntry.classname = object.getClass().getName();
