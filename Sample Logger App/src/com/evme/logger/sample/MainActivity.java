@@ -17,6 +17,7 @@ public class MainActivity extends Activity {
 		Log.i(this, "Info message 3");
 		Log.w(this, "Warning message 4");
 		Log.e(this, "Error message 5");
+		Log.e(this, "Error message 6", new RuntimeException("Something strange"));
 		
 	}
 
