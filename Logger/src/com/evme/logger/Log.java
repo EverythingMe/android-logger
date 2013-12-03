@@ -9,6 +9,7 @@ import android.os.Handler.Callback;
 import android.os.HandlerThread;
 import android.os.Message;
 
+import com.evme.logger.cache.Cache;
 import com.evme.logger.entities.LogEntry;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
@@ -72,6 +73,7 @@ public class Log implements Callback {
 	 */
 	public static void setConfiguration(LogConfiguration configuration) {
 		mConfiguration = configuration;
+		Cache.setConfiguration(mConfiguration);
 	}
 
 	/**
@@ -362,6 +364,18 @@ public class Log implements Callback {
 		getInstance().logImpl(logEntry);
 	}
 
+	public static void flushMemory() {
+		getInstance().flushImpl();
+	}
+	
+	private void flushImpl() {
+		/*
+		 * save all logs in batch on disk
+		 */
+		Cache.getInstance().flush(mLogQueueList);
+		mLogQueueList.clear();
+	}
+
 	private void logImpl(int type, Object object, String message) {
 
 		LogEntry logEntry = new LogEntry();
@@ -418,17 +432,7 @@ public class Log implements Callback {
 			/*
 			 * save all logs in batch on disk
 			 */
-
-			// TODO - change this to disk implementation
-			for (LogEntry logEntry : mLogQueueList) {
-				String string = mConfiguration.getLogEntryFormatter().format(logEntry);
-				android.util.Log.e(LOG, string);
-			}
-
-			/*
-			 * clear the queue
-			 */
-			mLogQueueList.clear();
+			flushMemory();
 			break;
 
 		case WHAT_ADD_LOG:

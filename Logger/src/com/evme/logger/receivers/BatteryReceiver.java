@@ -1,13 +1,13 @@
 package com.evme.logger.receivers;
 
-import com.evme.logger.Log;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.Bundle;
+
+import com.evme.logger.Log;
 
 /**
  * Logs battery level and status changes

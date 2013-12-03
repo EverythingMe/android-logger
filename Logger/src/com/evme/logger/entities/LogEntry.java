@@ -10,7 +10,7 @@ public class LogEntry {
 	public String classname;
 	public String thread;
 	public String pattern;
-	public String[] parameters;
+	public Object[] parameters;
 	public Throwable exception;
 	public Bundle bundle;
 }

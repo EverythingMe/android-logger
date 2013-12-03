@@ -8,8 +8,8 @@ import android.content.Context;
 import android.os.Handler;
 
 import com.evme.logger.dispatchers.CrashDispatcher;
-import com.evme.logger.formaters.LogEntryFormatter;
-import com.evme.logger.formaters.SimpleLogEntryFormatter;
+import com.evme.logger.formatters.LogEntryFormatter;
+import com.evme.logger.formatters.SimpleLogEntryFormatter;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
 
