@@ -1,9 +1,8 @@
 package com.evme.logger.formatters;
 
 import com.evme.logger.Log;
-import com.evme.logger.entities.LogEntry;
+import com.evme.logger.Log.LogEntry;
 import com.evme.logger.helpers.Utils;
-
 
 public class SimpleLogEntryFormatter implements LogEntryFormatter {
 
@@ -14,20 +13,23 @@ public class SimpleLogEntryFormatter implements LogEntryFormatter {
 		stringBuilder.append(logEntry.time);
 		stringBuilder.append(", ");
 
-		stringBuilder.append(Utils.getLogType(logEntry.type));
+		stringBuilder.append(Utils.getLogTypeName(logEntry.type));
 		stringBuilder.append(", ");
 
-		switch (logEntry.type) {
-		case Log.TRACE:
-		case Log.INFO:
-		case Log.DEBUG:
-		case Log.WARNING:
-		case Log.ERROR:
+		switch (logEntry.level) {
+		case Log.Level.TRACE:
+		case Log.Level.INFO:
+		case Log.Level.DEBUG:
+		case Log.Level.WARNING:
+		case Log.Level.ERROR:
+
+			stringBuilder.append(Utils.getLogLevelName(logEntry.level));
+			stringBuilder.append(", ");
 
 			stringBuilder.append("class:");
 			stringBuilder.append(logEntry.classname);
 			stringBuilder.append(", ");
-			
+
 			stringBuilder.append("thread:");
 			stringBuilder.append(logEntry.thread);
 			stringBuilder.append(", ");
@@ -40,10 +42,6 @@ public class SimpleLogEntryFormatter implements LogEntryFormatter {
 				stringBuilder.append(",exception:");
 				stringBuilder.append(logEntry.exception);
 			}
-
-			break;
-			
-		case Log.SYSTEM:
 
 			break;
 

@@ -1,6 +1,6 @@
 package com.evme.logger.formatters;
 
-import com.evme.logger.entities.LogEntry;
+import com.evme.logger.Log.LogEntry;
 
 public interface LogEntryFormatter {
 
