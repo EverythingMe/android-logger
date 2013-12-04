@@ -1,76 +1,52 @@
 package com.evme.logger.sample;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.lang.Thread.UncaughtExceptionHandler;
-
 import android.app.Application;
+import android.os.SystemClock;
 
 import com.evme.logger.Log;
 import com.evme.logger.LogConfiguration;
-import com.evme.logger.cache.Cache;
+import com.evme.logger.Log.Level;
+import com.evme.logger.Log.Types;
+import com.evme.logger.dispatchers.EmailReportDispatcher;
 import com.evme.logger.formatters.JsonLogEntryFormatter;
 import com.evme.logger.receivers.BatteryReceiver;
 import com.evme.logger.receivers.ScreenReceiver;
-import com.evme.logger.tools.common.CommonTool;
+import com.evme.logger.reports.LogsFilter;
+import com.evme.logger.reports.Report;
 
 public class LoggerApplication extends Application {
-
-	// TEST CRASH
-	private UncaughtExceptionHandler mHandler = new Thread.UncaughtExceptionHandler() {
-
-		@Override
-		public void uncaughtException(Thread t, Throwable e) {
-
-			Log.e(this, "Crash", e);
-			Log.flushMemory();
-
-			Cache cache = Cache.getInstance();
-			try {
-
-				InputStream inputStream = getContentResolver().openInputStream(cache.getAppLogUri());
-				String string = CommonTool.convertStreamToString(inputStream);
-				android.util.Log.e("Sample", " --- App ---");
-				android.util.Log.e("Sample", string);
-
-				InputStream inputReceiverStream = getContentResolver().openInputStream(cache.getReceiverUri());
-				String receiver = CommonTool.convertStreamToString(inputReceiverStream);
-				android.util.Log.e("Sample", " --- Receiver ---");
-				android.util.Log.e("Sample", receiver);
-
-			} catch (FileNotFoundException e1) {
-
-				android.util.Log.e("Logger", "general exception", e1);
-
-			} finally {
-
-				// clean cache
-				cache.clean();
-				// continue and show to the user the crash
-				defaultUncaughtExceptionHandler.uncaughtException(t, e);
-
-			}
-
-		}
-	};
-
-	private UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
+		// create filter for crash report
+		LogsFilter logsFilter = new LogsFilter();
+		logsFilter.setLogLevel(Level.TRACE);
+		logsFilter.setLogTypes(Types.APP | Types.RECEIVER);
+		logsFilter.setStartTime(SystemClock.currentThreadTimeMillis() - 1000 * 60 * 60);
+
+		// create crash report definition
+		Report crashReport = new Report.Builder()
+			.setIncludeDeviceInfo(true)
+			.setMergeLogs(false)
+			.setLogsFilter(logsFilter)
+			.build();
+		
+		// create logger configuration
 		LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 			.addSystemReceiver(new BatteryReceiver())
 			.addSystemReceiver(new ScreenReceiver())
+			.addCrashDispatcher(new EmailReportDispatcher("roman@everything.me"))
+			.setCrashReport(crashReport)
 			.setLogPriority(Thread.MIN_PRIORITY)
-			.setLogQueueListMaxSize(2).setLogEntryFormatter(new JsonLogEntryFormatter()).build();
+			.setLogQueueListMaxSize(100)
+			.setLogEntryFormatter(new JsonLogEntryFormatter())
+			.build();
 
+		// set and start 
 		Log.setConfiguration(logConfiguration);
 		Log.start();
-
-		defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-		Thread.setDefaultUncaughtExceptionHandler(mHandler);
 
 	}
 
