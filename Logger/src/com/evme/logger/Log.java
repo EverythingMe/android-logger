@@ -1,6 +1,9 @@
 package com.evme.logger;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -8,31 +11,45 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.SparseArray;
 
 import com.evme.logger.cache.Cache;
-import com.evme.logger.entities.LogEntry;
+import com.evme.logger.dispatchers.ReportDispatcher;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
+import com.evme.logger.reports.Report;
 
 public class Log implements Callback {
 
 	private static final String LOG = "Logger";
 
-	public static final int TRACE = 1;
-	public static final int DEBUG = 2;
-	public static final int INFO = 4;
-	public static final int WARNING = 8;
-	public static final int ERROR = 16;
-	public static final int SYSTEM = 32;
+	public static final class Level {
+
+		public static final int TRACE = 1;
+		public static final int DEBUG = 2;
+		public static final int INFO = 4;
+		public static final int WARNING = 8;
+		public static final int ERROR = 16;
+
+	}
+
+	public static final class Types {
+		public static final int APP = 1;
+		public static final int RECEIVER = 2;
+	}
 
 	// instance and configuration
 	private static Log mInstance = null;
 	private static LogConfiguration mConfiguration;
+	public static Context context;
+
+	private static UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
 	// thread and handler
 	private static final int WHAT_FLUSH = 1001;
 	private static final int WHAT_ADD_LOG = 1002;
 
+	// looper thread
 	private final HandlerThread mHandlerThread;
 	private final Handler mHandler;
 
@@ -73,6 +90,7 @@ public class Log implements Callback {
 	 */
 	public static void setConfiguration(LogConfiguration configuration) {
 		mConfiguration = configuration;
+		context = mConfiguration.getContext();
 		Cache.setConfiguration(mConfiguration);
 	}
 
@@ -80,9 +98,60 @@ public class Log implements Callback {
 	 * Start logging
 	 */
 	public static void start() {
+
+		// set uncaught exception handling and unregister all receivers
+		setUncaughtException();
+
+		// register all receivers
 		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
 			systemReceiver.register(mConfiguration.getContext());
 		}
+	}
+
+	/**
+	 * Set handling uncaught exception
+	 */
+	private static void setUncaughtException() {
+
+		defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+
+		// crash handler
+		UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+
+			@Override
+			public void uncaughtException(final Thread t, final Throwable e) {
+
+				// log crash exception
+				Log.e(this, "Crash", e);
+
+				// flush all logs from memory into disk
+				flushMemory(new PostTask() {
+
+					@Override
+					public void run() {
+
+						// get crash report
+						Report crashReport = mConfiguration.getCrashReport();
+
+						// deliver to crash dispatchers (TODO - take from
+						// configuration)
+						List<ReportDispatcher> dispatchers = mConfiguration.getCrashDispatchers();
+						for (ReportDispatcher reportDispatcher : dispatchers) {
+							reportDispatcher.dispatch(crashReport);
+						}
+					}
+				});
+
+				// continue and show to the user the crash
+				defaultUncaughtExceptionHandler.uncaughtException(t, e);
+
+			}
+
+		};
+
+		// set our crash handler
+		Thread.setDefaultUncaughtExceptionHandler(handler);
+
 	}
 
 	/**
@@ -107,7 +176,7 @@ public class Log implements Callback {
 	 *            The message to log
 	 */
 	public static void t(Object object, String message) {
-		getInstance().logImpl(TRACE, object, message);
+		getInstance().logImpl(Level.TRACE, object, message);
 	}
 
 	/**
@@ -125,7 +194,7 @@ public class Log implements Callback {
 	 *            The parameters to be replaces with placeholder
 	 */
 	public static void t(Object object, String pattern, Object... parameters) {
-		getInstance().logImpl(TRACE, object, pattern, parameters);
+		getInstance().logImpl(Level.TRACE, object, pattern, parameters);
 	}
 
 	/**
@@ -143,7 +212,7 @@ public class Log implements Callback {
 	 *            The message to log
 	 */
 	public static void d(Object object, String message) {
-		getInstance().logImpl(DEBUG, object, message);
+		getInstance().logImpl(Level.DEBUG, object, message);
 	}
 
 	/**
@@ -163,7 +232,7 @@ public class Log implements Callback {
 	 *            The parameters to be replaces with placeholder
 	 */
 	public static void d(Object object, String pattern, Object... parameters) {
-		getInstance().logImpl(DEBUG, object, pattern, parameters);
+		getInstance().logImpl(Level.DEBUG, object, pattern, parameters);
 	}
 
 	/**
@@ -182,7 +251,7 @@ public class Log implements Callback {
 	 *            The message to log
 	 */
 	public static void i(Object object, String message) {
-		getInstance().logImpl(INFO, object, message);
+		getInstance().logImpl(Level.INFO, object, message);
 	}
 
 	/**
@@ -203,7 +272,7 @@ public class Log implements Callback {
 	 *            The parameters to be replaces with placeholder
 	 */
 	public static void i(Object object, String pattern, Object... parameters) {
-		getInstance().logImpl(INFO, object, pattern, parameters);
+		getInstance().logImpl(Level.INFO, object, pattern, parameters);
 	}
 
 	/**
@@ -226,7 +295,7 @@ public class Log implements Callback {
 	 *            The message to log
 	 */
 	public static void w(Object object, String message) {
-		getInstance().logImpl(WARNING, object, message);
+		getInstance().logImpl(Level.WARNING, object, message);
 	}
 
 	/**
@@ -251,7 +320,7 @@ public class Log implements Callback {
 	 *            The parameters to be replaces with placeholder
 	 */
 	public static void w(Object object, String pattern, Object... parameters) {
-		getInstance().logImpl(WARNING, object, pattern, parameters);
+		getInstance().logImpl(Level.WARNING, object, pattern, parameters);
 	}
 
 	/**
@@ -276,7 +345,7 @@ public class Log implements Callback {
 	 *            The throwable to be logged with the message
 	 */
 	public static void w(Object object, String message, Throwable throwable) {
-		getInstance().logImpl(WARNING, object, message, throwable);
+		getInstance().logImpl(Level.WARNING, object, message, throwable);
 	}
 
 	/**
@@ -294,7 +363,7 @@ public class Log implements Callback {
 	 *            The message to log
 	 */
 	public static void e(Object object, String message) {
-		getInstance().logImpl(ERROR, object, message);
+		getInstance().logImpl(Level.ERROR, object, message);
 	}
 
 	/**
@@ -314,7 +383,7 @@ public class Log implements Callback {
 	 *            The parameters to be replaces with placeholder
 	 */
 	public static void e(Object object, String pattern, Object... parameters) {
-		getInstance().logImpl(ERROR, object, pattern, parameters);
+		getInstance().logImpl(Level.ERROR, object, pattern, parameters);
 	}
 
 	/**
@@ -334,7 +403,7 @@ public class Log implements Callback {
 	 *            The throwable to be logged with the message
 	 */
 	public static void e(Object object, String message, Throwable throwable) {
-		getInstance().logImpl(ERROR, object, message, throwable);
+		getInstance().logImpl(Level.ERROR, object, message, throwable);
 	}
 
 	/**
@@ -358,53 +427,58 @@ public class Log implements Callback {
 	 */
 	public static void system(String name, Bundle bundle) {
 		LogEntry logEntry = new LogEntry();
-		logEntry.type = SYSTEM;
+		logEntry.type = Types.RECEIVER;
 		logEntry.bundle = bundle;
 
 		getInstance().logImpl(logEntry);
 	}
 
-	public static void flushMemory() {
-		getInstance().flushImpl();
-	}
-	
-	private void flushImpl() {
-		/*
-		 * save all logs in batch on disk
-		 */
-		Cache.getInstance().flush(mLogQueueList);
-		mLogQueueList.clear();
+	/**
+	 * Flush all logs from memory to disk after all logs are written
+	 */
+	public static void flushMemory(PostTask postTask) {
+		getInstance().flushMemoryImpl(postTask);
 	}
 
-	private void logImpl(int type, Object object, String message) {
+	private AtomicInteger atomicInteger = new AtomicInteger(1);
+	private SparseArray<PostTask> postTasks = new SparseArray<Log.PostTask>();
+
+	private void flushMemoryImpl(PostTask postTask) {
+		int postTaskKey = atomicInteger.getAndIncrement();
+		postTasks.append(postTaskKey, postTask);
+		Message message = Message.obtain(mHandler, WHAT_FLUSH, postTaskKey, 0);
+		message.sendToTarget();
+	}
+
+	private void logImpl(int level, Object object, String message) {
 
 		LogEntry logEntry = new LogEntry();
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
-		logEntry.type = type;
+		logEntry.level = level;
 		logEntry.message = message;
 
 		logImpl(logEntry);
 	}
 
-	private void logImpl(int type, Object object, String message, Throwable throwable) {
+	private void logImpl(int level, Object object, String message, Throwable throwable) {
 
 		LogEntry logEntry = new LogEntry();
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
-		logEntry.type = type;
+		logEntry.level = level;
 		logEntry.message = message;
 		logEntry.exception = throwable;
 
 		logImpl(logEntry);
 	}
 
-	private void logImpl(int type, Object object, String pattern, Object... parameters) {
+	private void logImpl(int level, Object object, String pattern, Object... parameters) {
 
 		LogEntry logEntry = new LogEntry();
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
-		logEntry.type = type;
+		logEntry.level = level;
 		logEntry.pattern = pattern;
 		logEntry.parameters = parameters;
 
@@ -432,7 +506,18 @@ public class Log implements Callback {
 			/*
 			 * save all logs in batch on disk
 			 */
-			flushMemory();
+			Cache.getInstance().flush(mLogQueueList);
+			// we can clear the collection without being worried
+			mLogQueueList.clear();
+
+			// check for post task
+			int taskKey = msg.arg1;
+			PostTask postTask = postTasks.get(taskKey);
+			if (postTask != null) {
+				postTask.run();
+				postTasks.remove(taskKey);
+			}
+
 			break;
 
 		case WHAT_ADD_LOG:
@@ -448,7 +533,7 @@ public class Log implements Callback {
 			 * queue on disk
 			 */
 			if (mLogQueueList.size() == MAX_SIZE) {
-				Message message = Message.obtain(mHandler, WHAT_FLUSH);
+				Message message = Message.obtain(mHandler, WHAT_FLUSH, -1, 0);
 				mHandler.sendMessageAtFrontOfQueue(message);
 			}
 
@@ -459,5 +544,29 @@ public class Log implements Callback {
 		}
 
 		return false;
+	}
+
+	public static class LogEntry {
+
+		public long time;
+		public int level;
+		public int type = -1;
+		public String message;
+		public String classname;
+		public String thread;
+		public String pattern;
+		public Object[] parameters;
+		public Throwable exception;
+		public Bundle bundle;
+	}
+
+	/**
+	 * This task will be executed on Log looper thread
+	 * 
+	 * @author sromku
+	 * 
+	 */
+	public interface PostTask extends Runnable {
+
 	}
 }

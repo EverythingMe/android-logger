@@ -16,10 +16,10 @@ import com.google.gson.JsonSerializer;
  * @author sromku
  * 
  */
-public class ExceptionSerializer implements JsonSerializer<Exception> {
+public class ExceptionSerializer implements JsonSerializer<Throwable> {
 
 	@Override
-	public JsonElement serialize(Exception src, Type typeOfSrc, JsonSerializationContext context) {
+	public JsonElement serialize(Throwable src, Type typeOfSrc, JsonSerializationContext context) {
 
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.add("cause", new JsonPrimitive(String.valueOf(src.getCause())));

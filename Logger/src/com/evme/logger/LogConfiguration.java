@@ -7,26 +7,31 @@ import java.util.Map;
 import android.content.Context;
 import android.os.Handler;
 
-import com.evme.logger.dispatchers.CrashDispatcher;
+import com.evme.logger.dispatchers.ReportDispatcher;
 import com.evme.logger.formatters.LogEntryFormatter;
 import com.evme.logger.formatters.SimpleLogEntryFormatter;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
+import com.evme.logger.reports.Report;
 
 public class LogConfiguration {
 
 	private final Context context;
 	private final List<SystemReceiver> receivers;
+	private final List<ReportDispatcher> crashDispatchers;
 	private final LogEntryFormatter logEntryFormatter;
 	private int queueMaxSize;
 	private int threadPriority;
+	private Report crashReport;
 
 	private LogConfiguration(Builder builder) {
 		this.receivers = builder.receivers;
+		this.crashDispatchers = builder.crashDispatchers;
 		this.context = builder.context;
 		this.logEntryFormatter = builder.logEntryFormatter;
 		this.queueMaxSize = builder.queueMaxSize;
 		this.threadPriority = builder.threadPriority;
+		this.crashReport = builder.crashReport;
 	}
 
 	public Context getContext() {
@@ -49,14 +54,24 @@ public class LogConfiguration {
 		return queueMaxSize;
 	}
 
+	public List<ReportDispatcher> getCrashDispatchers() {
+		return crashDispatchers;
+	}
+
+	public Report getCrashReport() {
+		return crashReport;
+	}
+
 	public static class Builder {
 
 		private Context context;
 		private List<SystemReceiver> receivers = new ArrayList<SystemReceiver>();
+		private List<ReportDispatcher> crashDispatchers = new ArrayList<ReportDispatcher>();
 		private List<Handler> handlers = new ArrayList<Handler>();
 		private LogEntryFormatter logEntryFormatter = new SimpleLogEntryFormatter();
 		private Integer queueMaxSize = 5;
 		private int threadPriority = Thread.MIN_PRIORITY;
+		private Report crashReport;
 
 		public Builder(Context context) {
 			this.context = context;
@@ -80,8 +95,9 @@ public class LogConfiguration {
 		 * @param crashDispatcher
 		 * @return
 		 */
-		public Builder addCrashDispatcher(CrashDispatcher crashDispatcher) {
-			throw new RuntimeException("unsupported");
+		public Builder addCrashDispatcher(ReportDispatcher crashDispatcher) {
+			crashDispatchers.add(crashDispatcher);
+			return this;
 		}
 
 		/**
@@ -92,6 +108,17 @@ public class LogConfiguration {
 		 */
 		public Builder addCallbackHandler(Handler handler) {
 			handlers.add(handler);
+			return this;
+		}
+
+		/**
+		 * Create and define the report to be on crash event
+		 * 
+		 * @param report
+		 * @return
+		 */
+		public Builder setCrashReport(Report report) {
+			this.crashReport = report;
 			return this;
 		}
 
@@ -167,14 +194,6 @@ public class LogConfiguration {
 		 * @return
 		 */
 		public Builder setLogClassOutputMapping(Map<String, String> map) {
-			throw new RuntimeException("unsupported");
-		}
-
-		public Builder setCrachReportEmails(String emails) {
-			throw new RuntimeException("unsupported");
-		}
-
-		public Builder setCrashReportServer(String url) {
 			throw new RuntimeException("unsupported");
 		}
 

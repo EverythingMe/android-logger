@@ -3,12 +3,11 @@ package com.evme.logger.cache;
 import java.io.File;
 import java.util.List;
 
-import android.net.Uri;
 import android.os.Environment;
 
 import com.evme.logger.Log;
+import com.evme.logger.Log.LogEntry;
 import com.evme.logger.LogConfiguration;
-import com.evme.logger.entities.LogEntry;
 import com.evme.logger.formatters.LogEntryFormatter;
 import com.evme.logger.tools.storage.ExternalStorageTool;
 import com.evme.logger.tools.storage.StorageTool;
@@ -92,8 +91,9 @@ public class Cache {
 		LogEntryFormatter logEntryFormatter = mConfiguration.getLogEntryFormatter();
 
 		for (LogEntry logEntry : logs) {
+
 			switch (logEntry.type) {
-			case Log.SYSTEM:
+			case Log.Types.RECEIVER:
 				String formatted = logEntryFormatter.format(logEntry);
 				appendReceiverLog(formatted);
 				break;
@@ -120,14 +120,16 @@ public class Cache {
 
 	}
 
-	public Uri getAppLogUri() {
+	// TODO - remove this method
+	public File getAppLogFile() {
 		String path = Environment.getExternalStorageDirectory().getAbsolutePath();
-		return Uri.fromFile(new File(path + File.separator + APP + File.separator + APP_LOGS));
+		return new File(path + File.separator + APP + File.separator + APP_LOGS);
 	}
 
-	public Uri getReceiverUri() {
+	// TODO - remove this method
+	public File getReceiverFile() {
 		String path = Environment.getExternalStorageDirectory().getAbsolutePath();
-		return Uri.fromFile(new File(path + File.separator + RECEIVERS + File.separator + RECEIVER_LOGS));
+		return new File(path + File.separator + RECEIVERS + File.separator + RECEIVER_LOGS);
 	}
 
 }

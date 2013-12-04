@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.evme.logger.entities.LogEntry;
+import com.evme.logger.Log.LogEntry;
 
 public class LogQueueList implements List<LogEntry> {
 

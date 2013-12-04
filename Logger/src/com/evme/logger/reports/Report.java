@@ -14,10 +14,12 @@ public class Report {
 
 	private boolean mIncludeDeviceInfo = false;
 	private LogsFilter mLogsFilter = null;
+	private boolean mDoMerge = false;
 
 	private Report(Builder builder) {
 		this.mIncludeDeviceInfo = builder.mIncludeDeviceInfo;
 		this.mLogsFilter = builder.mLogsFilter;
+		this.mDoMerge = builder.mDoMerge;
 	}
 
 	/**
@@ -37,6 +39,7 @@ public class Report {
 
 		private boolean mIncludeDeviceInfo = false;
 		private LogsFilter mLogsFilter = null;
+		private boolean mDoMerge;
 
 		/**
 		 * Set <code>True</code> if you want to include in the final report
@@ -46,6 +49,18 @@ public class Report {
 		 */
 		public Builder setIncludeDeviceInfo(boolean include) {
 			mIncludeDeviceInfo = include;
+			return this;
+		}
+
+		/**
+		 * Set <code>True</code> if the final report should be merged into one
+		 * file ordered by times.
+		 * 
+		 * @param doMerge
+		 * @return {@link Builder}
+		 */
+		public Builder setMergeLogs(boolean doMerge) {
+			mDoMerge = doMerge;
 			return this;
 		}
 
@@ -93,6 +108,15 @@ public class Report {
 	 */
 	public LogsFilter getLogsFilter() {
 		return mLogsFilter;
+	}
+
+	/**
+	 * Indicates if merging of logs by time should be done
+	 * 
+	 * @return 
+	 */
+	public boolean getMergeLogs() {
+		return mDoMerge;
 	}
 
 }
