@@ -15,6 +15,7 @@ import android.util.SparseArray;
 
 import com.evme.logger.cache.Cache;
 import com.evme.logger.dispatchers.ReportDispatcher;
+import com.evme.logger.helpers.Utils;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
 import com.evme.logger.reports.Report;
@@ -22,6 +23,7 @@ import com.evme.logger.reports.Report;
 public class Log implements Callback {
 
 	private static final String LOG = "Logger";
+	private static final boolean PRINT_TO_LOG_CAT = true;
 
 	public static final class Level {
 
@@ -133,8 +135,7 @@ public class Log implements Callback {
 						// get crash report
 						Report crashReport = mConfiguration.getCrashReport();
 
-						// deliver to crash dispatchers (TODO - take from
-						// configuration)
+						// deliver to crash dispatchers
 						List<ReportDispatcher> dispatchers = mConfiguration.getCrashDispatchers();
 						for (ReportDispatcher reportDispatcher : dispatchers) {
 							reportDispatcher.dispatch(crashReport);
@@ -407,16 +408,6 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * Logs static system info
-	 * 
-	 * @param context
-	 */
-	public static void system(Context context) {
-		// Bundle bundle = SystemInfo.getInstance(context).getBundle();
-		// system("static", bundle);
-	}
-
-	/**
 	 * Logs any system received information
 	 * 
 	 * @param name
@@ -429,6 +420,7 @@ public class Log implements Callback {
 		LogEntry logEntry = new LogEntry();
 		logEntry.type = Types.RECEIVER;
 		logEntry.bundle = bundle;
+		logEntry.name =name;
 
 		getInstance().logImpl(logEntry);
 	}
@@ -456,6 +448,7 @@ public class Log implements Callback {
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
 		logEntry.level = level;
+		logEntry.type = Types.APP;
 		logEntry.message = message;
 
 		logImpl(logEntry);
@@ -467,6 +460,7 @@ public class Log implements Callback {
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
 		logEntry.level = level;
+		logEntry.type = Types.APP;
 		logEntry.message = message;
 		logEntry.exception = throwable;
 
@@ -479,6 +473,7 @@ public class Log implements Callback {
 		logEntry.classname = object.getClass().getName();
 		logEntry.thread = Thread.currentThread().getName();
 		logEntry.level = level;
+		logEntry.type = Types.APP;
 		logEntry.pattern = pattern;
 		logEntry.parameters = parameters;
 
@@ -486,6 +481,10 @@ public class Log implements Callback {
 	}
 
 	private void logImpl(LogEntry logEntry) {
+
+		if (PRINT_TO_LOG_CAT) {
+			Utils.printToLogcat(logEntry);
+		}
 
 		// set time
 		logEntry.time = Calendar.getInstance().getTimeInMillis();
@@ -557,6 +556,7 @@ public class Log implements Callback {
 		public String pattern;
 		public Object[] parameters;
 		public Throwable exception;
+		public String name;
 		public Bundle bundle;
 	}
 

@@ -36,7 +36,7 @@ public class ScreenReceiver implements SystemReceiver {
 				} else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
 
 					Bundle bundle = new Bundle();
-					bundle.putString("status", "ON");
+					bundle.putString("status", "OFF");
 					Log.system(getLoggerName(), bundle);
 
 				}
