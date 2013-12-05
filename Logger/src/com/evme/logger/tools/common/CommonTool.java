@@ -3,6 +3,8 @@ package com.evme.logger.tools.common;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.UUID;
 
 import android.content.Context;
@@ -65,6 +67,41 @@ public class CommonTool {
 			deviceid = getUniqueId(context);
 		}
 		return deviceid;
+	}
+
+	/**
+	 * get stack trace as string
+	 * 
+	 * @param traceElements
+	 *            - stack trace elements
+	 * @param prefix
+	 * @return built string
+	 */
+	public static String getStackTrace(Throwable throwable, String prefix) {
+
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		throwable.printStackTrace(pw);
+		String string = sw.toString();
+		return string;
+
+		// StringBuilder builder = new StringBuilder();
+		// builder.append(string);
+		// builder.append("\n");
+		// builder.append("... more ...");
+		// builder.append("\n");
+		//
+		// for (int i = 0; i < throwable.getStackTrace().length; ++i) {
+		// StackTraceElement element = throwable.getStackTrace()[i];
+		// builder.append(MessageFormat.format("at {0}.{1}({2}:{3})",
+		// element.getClassName(),
+		// element.getMethodName(),
+		// element.getFileName(),
+		// element.getLineNumber()));
+		// builder.append("\n");
+		// }
+		//
+		// return new String(builder);
 	}
 
 }
