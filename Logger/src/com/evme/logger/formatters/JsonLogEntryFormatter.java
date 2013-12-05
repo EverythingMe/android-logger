@@ -25,4 +25,9 @@ public class JsonLogEntryFormatter implements LogEntryFormatter {
 		
 	}
 
+	@Override
+	public String getName() {
+		return "Json Formatter";
+	}
+
 }
