@@ -15,6 +15,8 @@ public class Report {
 	private boolean mIncludeDeviceInfo = false;
 	private LogsFilter mLogsFilter = null;
 	private boolean mDoMerge = false;
+	private String mName = null;
+	private List<File> mFiles = null;
 
 	private Report(Builder builder) {
 		this.mIncludeDeviceInfo = builder.mIncludeDeviceInfo;
@@ -30,9 +32,9 @@ public class Report {
 	 * 
 	 * @return
 	 */
-	public List<File> create() {
+	public void create() {
 		ReportGenerator reportGenerator = new ReportGenerator();
-		return reportGenerator.generate(this);
+		reportGenerator.generate(this);
 	}
 
 	public static class Builder {
@@ -91,6 +93,24 @@ public class Report {
 	}
 
 	/**
+	 * Set the name of the report
+	 * 
+	 * @param name
+	 */
+	void setName(String name) {
+		mName = name;
+	}
+
+	/**
+	 * Set the files of the report
+	 * 
+	 * @param files
+	 */
+	void setFiles(List<File> files) {
+		mFiles = files;
+	}
+
+	/**
 	 * Indicates if report should include information about the current device.
 	 * 
 	 * @return <code>True</code> if device information should be included in the
@@ -113,10 +133,31 @@ public class Report {
 	/**
 	 * Indicates if merging of logs by time should be done
 	 * 
-	 * @return 
+	 * @return
 	 */
 	public boolean getMergeLogs() {
 		return mDoMerge;
+	}
+
+	/**
+	 * After the <code>create()</code> of the report is called, the report will
+	 * get its new name.
+	 * 
+	 * @return
+	 */
+	public String getName() {
+		return mName;
+	}
+
+	/**
+	 * After the <code>onCreate()</code> of the report is called, the final
+	 * files that contain the logs will be created. Get them by using this
+	 * method.
+	 * 
+	 * @return
+	 */
+	public List<File> getFiles() {
+		return mFiles;
 	}
 
 }
