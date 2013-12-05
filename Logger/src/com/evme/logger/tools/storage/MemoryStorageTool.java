@@ -167,6 +167,12 @@ abstract class MemoryStorageTool implements IMemoryStorageTool {
 	}
 
 	@Override
+	public File getFile(String directoryName, String fileName) {
+		String path = buildPath(directoryName, fileName);
+		return new File(path);
+	}
+
+	@Override
 	public void appendFile(String directoryName, String fileName, byte[] bytes) {
 		if (!isFileExist(directoryName, fileName)) {
 			throw new RuntimeException("Impossible to append content, because such file doesn't exist");
