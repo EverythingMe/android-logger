@@ -119,12 +119,12 @@ Once the crash happened, you would like to report it. Prepare the `Report` you w
 LogsFilter logsFilter = new LogsFilter();
 logsFilter.setLogLevel(Level.TRACE);
 logsFilter.setLogTypes(Types.APP | Types.RECEIVER);
-logsFilter.setStartTime(SystemClock.currentThreadTimeMillis() - 1000 * 60 * 60);
+logsFilter.setFromTime(Calendar.getInstance().getTimeInMillis() - 1000 * 60 * 60);
 
 // create crash report definition
 Report crashReport = new Report.Builder()
     .setIncludeDeviceInfo(true)
-    .setMergeLogs(false)
+    .setMergeLogs(true)
     .setLogsFilter(logsFilter)
     .build();
 ```
@@ -142,8 +142,13 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 
 ### 4. More
 
-- Set Log thread priority
-- Set cache memory buffer log size
+- Set **thread priority** - The thread priority of the logger
+- Set cache **memory buffer** log size - The size of number of logs in-memory
+- Set **cache target** type:
+	- Memory only - logs will be persisted in-memory only
+	- Internal - logs will be flushed into internal disk
+	- External - logs will be flushed into external disk if such exists
+- Set **history** max days - The max number of history days of logs on disk	
 
 **Example:**
 
@@ -151,7 +156,9 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 // create logger configuration
 LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
     .setLogPriority(Thread.MIN_PRIORITY)
-    .setLogQueueListMaxSize(100)
+    .setMemoryBufferSize(100)
+    .setCacheTargetType(CacheTargetType.EXTERNAL)
+    .setMaxHistoryDays(7)
     ...
     .build();
 ```

@@ -6,7 +6,7 @@ public class LogsFilter {
 
 	private int mLogLevel;
 	private int mLogTypes;
-	private Long mStartTime = null;
+	private Long mFromTime = null;
 	private boolean mLevelsExact = false;
 
 	/**
@@ -47,12 +47,12 @@ public class LogsFilter {
 	}
 
 	/**
-	 * Set the start time of logs to be filtered from
+	 * Set the time of logs to be filtered from
 	 * 
 	 * @param time
 	 */
-	public void setStartTime(long time) {
-		mStartTime = time;
+	public void setFromTime(long time) {
+		mFromTime = time;
 	}
 
 	/**
@@ -92,12 +92,12 @@ public class LogsFilter {
 	}
 
 	/**
-	 * Get the start time of logs to be filtered from
+	 * Get the time of logs to be filtered from
 	 * 
 	 * @return
 	 */
-	public Long getStartTime() {
-		return mStartTime;
+	public Long getFromTime() {
+		return mFromTime;
 	}
 
 }

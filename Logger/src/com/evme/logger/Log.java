@@ -15,6 +15,7 @@ import android.util.SparseArray;
 
 import com.evme.logger.cache.Cache;
 import com.evme.logger.dispatchers.ReportDispatcher;
+import com.evme.logger.helpers.Constants;
 import com.evme.logger.helpers.Utils;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
@@ -23,7 +24,6 @@ import com.evme.logger.reports.Report;
 public class Log implements Callback {
 
 	private static final String LOG = "Logger";
-	private static final boolean PRINT_TO_LOG_CAT = true;
 
 	public static final class Level {
 
@@ -482,7 +482,7 @@ public class Log implements Callback {
 
 	private void logImpl(LogEntry logEntry) {
 
-		if (PRINT_TO_LOG_CAT) {
+		if (Constants.PRINT_TO_LOG_CAT) {
 			Utils.printToLogcat(logEntry);
 		}
 

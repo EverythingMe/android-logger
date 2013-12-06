@@ -11,15 +11,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.evme.logger.cache.Cache;
 import com.evme.logger.helpers.Constants;
 import com.evme.logger.tools.date.DateTool;
-import com.evme.logger.tools.storage.ExternalStorageTool;
-import com.evme.logger.tools.storage.StorageTool;
 
+/**
+ * Report generator
+ * 
+ * @author sromku
+ */
 public class ReportGenerator {
 
-	// TODO - take it from configuration
-	private ExternalStorageTool mExternalStorageTool = StorageTool.getExternalStorageTool();
+	// cache instance
+	private final Cache cache = Cache.getInstance();
 
 	@SuppressWarnings("unchecked")
 	public void generate(Report report) {
@@ -28,93 +32,81 @@ public class ReportGenerator {
 
 		// generate and set folder name
 		Date date = Calendar.getInstance().getTime();
-		String reportFolderName = DateTool.getString(date, "dd-MM HH:mm:ss");
-		report.setName(reportFolderName);
+		String dirName = DateTool.getString(date, "dd-MM HH:mm:ss");
+		String reportDir = Constants.DIR_REPORTS + File.separator + dirName;
+		report.setName(dirName);
 
 		// create report folders DEBUG/REPORT/dd-MM HH:mm:ss/
-		createFolder(Constants.REPORTS);
-		createFolder(Constants.REPORTS + File.separator + reportFolderName);
+		cache.createFolder(Constants.DIR_REPORTS);
+		cache.createFolder(reportDir);
 
-		// get files content
-		// TODO - read from today log
-		String appLogs = mExternalStorageTool.readTextFile(Constants.APP, Constants.APP_LOGS);
-		String receiverLogs = mExternalStorageTool.readTextFile(Constants.RECEIVERS, Constants.RECEIVER_LOGS);
-
+		// get files content and split to rows of logs
+		String appLogs = cache.getFileContent(Constants.DIR_APP, Constants.LOG_APP);
 		String[] applogsArray = appLogs.split("(\\[#\\])");
+
+		String receiverLogs = cache.getFileContent(Constants.DIR_RECEIVERS, Constants.LOG_RECEIVER);
 		String[] receiverLogsArray = receiverLogs.split("(\\[#\\])");
 
 		// filter by date
-		long fromDate = report.getLogsFilter().getStartTime();
-		List<String> appLogsFiltered = filterByDate(applogsArray, fromDate);
-		List<String> receiverLogsList = filterByDate(receiverLogsArray, fromDate);
+		long fromTime = report.getLogsFilter().getFromTime();
+		List<String> appLogsFiltered = filterByDate(applogsArray, fromTime);
+		List<String> receiverLogsList = filterByDate(receiverLogsArray, fromTime);
 
 		// create new report empty files
-		createFile(Constants.REPORTS + File.separator + reportFolderName, Constants.APP_LOGS);
-		createFile(Constants.REPORTS + File.separator + reportFolderName, Constants.RECEIVER_LOGS);
+		// app logs
+		cache.createFile(reportDir, Constants.LOG_APP);
+		cache.appendFile(reportDir, Constants.LOG_APP, appLogsFiltered);
+		results.add(cache.getFile(reportDir, Constants.LOG_APP));
 
-		// append filtered data to report files
-		appendFile(Constants.REPORTS + File.separator + reportFolderName, Constants.APP_LOGS, appLogsFiltered);
-		appendFile(Constants.REPORTS + File.separator + reportFolderName, Constants.RECEIVER_LOGS, receiverLogsList);
+		// receiver logs
+		cache.createFile(reportDir, Constants.LOG_RECEIVER);
+		cache.appendFile(reportDir, Constants.LOG_RECEIVER, receiverLogsList);
+		results.add(cache.getFile(reportDir, Constants.LOG_RECEIVER));
 
 		// merge
-		List<String> mergedLogs = merge(appLogsFiltered, receiverLogsList);
-		createFile(Constants.REPORTS + File.separator + reportFolderName, Constants.MERGED_LOGS);
-		appendFile(Constants.REPORTS + File.separator + reportFolderName, Constants.MERGED_LOGS, mergedLogs);
+		if (report.getMergeLogs()) {
+			List<String> mergedLogs = merge(appLogsFiltered, receiverLogsList);
+			cache.createFile(reportDir, Constants.REPORT_MERGE);
+			cache.appendFile(reportDir, Constants.REPORT_MERGE, mergedLogs);
+			results.add(cache.getFile(reportDir, Constants.REPORT_MERGE));
+		}
 
-		// append device info
+		// TODO - append device info
+		if (report.getIncludeDeviceInfo()) {
+			
+		}
 
-		// get all files from report folder
-		results.add(mExternalStorageTool.getFile(Constants.REPORTS + File.separator + reportFolderName, Constants.APP_LOGS));
-		results.add(mExternalStorageTool.getFile(Constants.REPORTS + File.separator + reportFolderName, Constants.RECEIVER_LOGS));
-		results.add(mExternalStorageTool.getFile(Constants.REPORTS + File.separator + reportFolderName, Constants.MERGED_LOGS));
+		// set the results
 		report.setFiles(results);
 	}
 
-	private Comparator<String> comparator = new Comparator<String>() {
-
-		@Override
-		public int compare(String str1, String str2) {
-
-			Long timeFirst = getLogTime(str1);
-			Long timeSecond = getLogTime(str2);
-
-			timeFirst = timeFirst == null ? 0 : timeFirst;
-			timeSecond = timeSecond == null ? 0 : timeSecond;
-
-			return (int) (timeFirst - timeSecond);
-		}
-	};
-
+	/**
+	 * Merge all logs and sort by date.
+	 * 
+	 * @param logs
+	 * @return Sorted merged logs
+	 */
 	private List<String> merge(List<String>... logs) {
 		List<String> list = new ArrayList<String>(logs[0]);
 		for (int i = 1; i < logs.length; i++) {
 			list.addAll(logs[i]);
 		}
-		Collections.sort(list, comparator);
+		Collections.sort(list, new LogTimeComperator());
 		return list;
 	}
 
-	private void appendFile(String folderName, String fileName, List<String> logs) {
-		for (String log : logs) {
-			mExternalStorageTool.appendFile(folderName, fileName, log);
-		}
-	}
-
-	private void createFolder(String folder) {
-		if (!mExternalStorageTool.isDirectoryExists(folder)) {
-			mExternalStorageTool.createDirectory(folder);
-		}
-	}
-
-	private void createFile(String folder, String name) {
-		if (!mExternalStorageTool.isFileExist(folder, name)) {
-			mExternalStorageTool.createFile(folder, name, "");
-		}
-	}
-
-	private List<String> filterByDate(String[] raws, long fromDate) {
+	/**
+	 * Filter and return list of logs that start from passed date.
+	 * 
+	 * @param logs
+	 *            The list of logs to filter
+	 * @param fromDate
+	 *            The date from which we will filter the logs
+	 * @return The filtered logs
+	 */
+	private List<String> filterByDate(String[] logs, long fromDate) {
 		List<String> filteredAppLogsArray = new ArrayList<String>();
-		for (String appLog : raws) {
+		for (String appLog : logs) {
 
 			Long time = getLogTime(appLog);
 			if (time != null && time >= fromDate) {
@@ -125,6 +117,12 @@ public class ReportGenerator {
 		return filteredAppLogsArray;
 	}
 
+	/**
+	 * Get the time of the log
+	 * 
+	 * @param log
+	 * @return
+	 */
 	private Long getLogTime(String log) {
 		final Pattern pattern = Pattern.compile(Constants.DATE_FORMAT_REGEX);
 		final Matcher matcher = pattern.matcher(log);
@@ -141,4 +139,23 @@ public class ReportGenerator {
 		return null;
 	}
 
+	/**
+	 * Compare logs by date
+	 * 
+	 * @author sromku
+	 */
+	public class LogTimeComperator implements Comparator<String> {
+
+		@Override
+		public int compare(String log1, String str2) {
+
+			Long timeFirst = getLogTime(log1);
+			Long timeSecond = getLogTime(str2);
+
+			timeFirst = timeFirst == null ? 0 : timeFirst;
+			timeSecond = timeSecond == null ? 0 : timeSecond;
+
+			return (int) (timeFirst - timeSecond);
+		}
+	}
 }
