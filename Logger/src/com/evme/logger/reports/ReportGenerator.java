@@ -28,6 +28,10 @@ public class ReportGenerator {
 	@SuppressWarnings("unchecked")
 	public void generate(Report report) {
 
+		// set log configuration to report
+		report.setLogConfiguration(cache.getLogConfiguration());
+
+		// initialize the files to be added to report
 		List<File> results = new ArrayList<File>();
 
 		// generate and set folder name
@@ -52,16 +56,25 @@ public class ReportGenerator {
 		List<String> appLogsFiltered = filterByDate(applogsArray, fromTime);
 		List<String> receiverLogsList = filterByDate(receiverLogsArray, fromTime);
 
+		// add last log
+		if (appLogsFiltered.size() > 0) {
+			report.setLastLog(appLogsFiltered.get(appLogsFiltered.size() - 1));
+		}
+
 		// create new report empty files
 		// app logs
-		cache.createFile(reportDir, Constants.LOG_APP);
-		cache.appendFile(reportDir, Constants.LOG_APP, appLogsFiltered);
-		results.add(cache.getFile(reportDir, Constants.LOG_APP));
+		if (appLogsFiltered.size() > 0) {
+			cache.createFile(reportDir, Constants.LOG_APP);
+			cache.appendFile(reportDir, Constants.LOG_APP, appLogsFiltered);
+			results.add(cache.getFile(reportDir, Constants.LOG_APP));
+		}
 
 		// receiver logs
-		cache.createFile(reportDir, Constants.LOG_RECEIVER);
-		cache.appendFile(reportDir, Constants.LOG_RECEIVER, receiverLogsList);
-		results.add(cache.getFile(reportDir, Constants.LOG_RECEIVER));
+		if (receiverLogsList.size() > 0) {
+			cache.createFile(reportDir, Constants.LOG_RECEIVER);
+			cache.appendFile(reportDir, Constants.LOG_RECEIVER, receiverLogsList);
+			results.add(cache.getFile(reportDir, Constants.LOG_RECEIVER));
+		}
 
 		// merge
 		if (report.getMergeLogs()) {
@@ -73,7 +86,7 @@ public class ReportGenerator {
 
 		// TODO - append device info
 		if (report.getIncludeDeviceInfo()) {
-			
+
 		}
 
 		// set the results

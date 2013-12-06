@@ -25,6 +25,7 @@ public class Constants {
 	public static final String DATE_LOG_DAY_FORMAT = "MM_dd";
 	public static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss.SSS";
 	public static final String DATE_FORMAT_REGEX = "[0-9-]+-[0-9 :.]+[0-9]";
+	public static final String EXCEPTION_STRING_SPLITTER = "\\sat\\s";
 
 	// control
 	public static final boolean PRINT_TO_LOG_CAT = true;

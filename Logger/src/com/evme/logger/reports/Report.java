@@ -3,6 +3,7 @@ package com.evme.logger.reports;
 import java.io.File;
 import java.util.List;
 
+import com.evme.logger.LogConfiguration;
 import com.evme.logger.dispatchers.ReportDispatcher;
 
 /**
@@ -12,11 +13,18 @@ import com.evme.logger.dispatchers.ReportDispatcher;
  */
 public class Report {
 
+	public static enum ReportType {
+		CRASH, ON_DEMAND
+	}
+
 	private boolean mIncludeDeviceInfo = false;
 	private LogsFilter mLogsFilter = null;
 	private boolean mDoMerge = false;
 	private String mName = null;
 	private List<File> mFiles = null;
+	private String mLastLog = null;
+	private ReportType mReportType = null;
+	private LogConfiguration mLogConfiguration = null;
 
 	private Report(Builder builder) {
 		this.mIncludeDeviceInfo = builder.mIncludeDeviceInfo;
@@ -92,6 +100,10 @@ public class Report {
 		}
 	}
 
+	void setLogConfiguration(LogConfiguration logConfiguration) {
+		mLogConfiguration = logConfiguration;
+	}
+
 	/**
 	 * Set the name of the report
 	 * 
@@ -108,6 +120,26 @@ public class Report {
 	 */
 	void setFiles(List<File> files) {
 		mFiles = files;
+	}
+
+	/**
+	 * Set last log. This can be helpful when you want to send a report and in
+	 * addition to attached files you would like to print last exception (for
+	 * example).
+	 * 
+	 * @param log
+	 */
+	void setLastLog(String log) {
+		mLastLog = log;
+	}
+
+	/**
+	 * Set report type
+	 * 
+	 * @param reportType
+	 */
+	public void setReportType(ReportType reportType) {
+		mReportType = reportType;
 	}
 
 	/**
@@ -140,6 +172,15 @@ public class Report {
 	}
 
 	/**
+	 * Get logger configuration
+	 * 
+	 * @return
+	 */
+	public LogConfiguration getLogConfiguration() {
+		return mLogConfiguration;
+	}
+
+	/**
 	 * After the <code>create()</code> of the report is called, the report will
 	 * get its new name.
 	 * 
@@ -158,6 +199,24 @@ public class Report {
 	 */
 	public List<File> getFiles() {
 		return mFiles;
+	}
+
+	/**
+	 * Get report type
+	 * 
+	 * @return
+	 */
+	public ReportType getReportType() {
+		return mReportType;
+	}
+
+	/**
+	 * Return last log
+	 * 
+	 * @return
+	 */
+	public String getLastLog() {
+		return mLastLog;
 	}
 
 }

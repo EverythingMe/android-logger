@@ -48,6 +48,15 @@ public class Cache {
 	}
 
 	/**
+	 * Get logger configuration
+	 * 
+	 * @return
+	 */
+	public LogConfiguration getLogConfiguration() {
+		return mConfiguration;
+	}
+
+	/**
 	 * Set logger configuration. <br>
 	 * <br>
 	 * <b>Important:</b><br>
@@ -177,7 +186,10 @@ public class Cache {
 	 */
 	public String getFileContent(String dirName, String logFileNamePattern) {
 		String fileName = getLogFileNameToday(logFileNamePattern);
-		return mStorage.readTextFile(dirName, fileName);
+		if (mStorage.isFileExist(dirName, fileName)) {
+			return mStorage.readTextFile(dirName, fileName);
+		}
+		return "";
 	}
 
 	/**

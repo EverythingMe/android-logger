@@ -9,7 +9,12 @@ import android.net.Uri;
 import android.text.Html;
 
 import com.evme.logger.Log;
+import com.evme.logger.helpers.Constants;
+import com.evme.logger.helpers.Utils;
+import com.evme.logger.receivers.SystemReceiver;
 import com.evme.logger.reports.Report;
+import com.evme.logger.reports.Report.ReportType;
+import com.evme.logger.tools.date.DateTool;
 
 public class EmailReportDispatcher implements ReportDispatcher {
 
@@ -24,6 +29,8 @@ public class EmailReportDispatcher implements ReportDispatcher {
 
 		// generate report
 		report.create();
+
+		// get generated files
 		List<File> attachments = report.getFiles();
 		ArrayList<Uri> uris = new ArrayList<Uri>();
 		for (File file : attachments) {
@@ -47,42 +54,89 @@ public class EmailReportDispatcher implements ReportDispatcher {
 	}
 
 	/**
-	 * Crash Report
-	 * 
-	 * My Comment: When I opened the app, it just crashed.
-	 * 
-	 * Device info: - Manufacture: - Android api: - ...
-	 * 
-	 * Report configuration: - From time: 12:03PM - Log level: TRACE - Output
-	 * format: simple - System events: 1. Battery 2. Screen
-	 * 
-	 * Logs attached: 1. App logs 2. System events logs
-	 * 
+	 * Create content of the email
 	 * 
 	 * @param report
 	 * @return
 	 */
 	private String createContent(Report report) {
+
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("<h3>Crash Report</h3>");
+
+		// header
+		if (report.getReportType().equals(ReportType.CRASH)) {
+			stringBuilder.append("<u><b>Crash Report</b></u>");
+			stringBuilder.append("<br>");
+			stringBuilder.append("<br>");
+		}
+
+		// configuration
 		stringBuilder.append("<b>Report configuration:</b>");
 		stringBuilder.append("<br>");
-		stringBuilder.append("- From time: 23:30");
+
+		// from time
+		stringBuilder.append("- From time: ");
+		String fromTime = DateTool.getString(DateTool.getDate(report.getLogsFilter().getFromTime()), Constants.DATE_FORMAT);
+		stringBuilder.append(fromTime);
 		stringBuilder.append("<br>");
-		stringBuilder.append("- Log level: TRACE");
-		stringBuilder.append("<br>");
-		stringBuilder.append("- System events: ");
-		stringBuilder.append("<br>");
-		stringBuilder.append("&nbsp;&nbsp;&nbsp;&nbsp;1. Battery ");
-		stringBuilder.append("<br>");
-		stringBuilder.append("&nbsp;&nbsp;&nbsp;&nbsp;2. Screen ");
+
+		// log level
+		stringBuilder.append("- Log level: ");
+		String logLevel = Utils.getLogLevelName(report.getLogsFilter().getLogLevel());
+		stringBuilder.append(logLevel);
 		stringBuilder.append("<br>");
 		stringBuilder.append("<br>");
-		stringBuilder.append("<b>Logs attached:</b>");
+
+		// system events
+		List<SystemReceiver> systemEvents = report.getLogConfiguration().getSystemReceivers();
+		if (systemEvents.size() > 0) {
+
+			stringBuilder.append("<b>System events:</b>");
+			stringBuilder.append("<br>");
+			int i = 1;
+			for (SystemReceiver systemReceiver : systemEvents) {
+				stringBuilder.append("&nbsp;&nbsp;&nbsp;&nbsp;" + i + ". " + systemReceiver.getLoggerName());
+				stringBuilder.append("<br>");
+				i++;
+			}
+		}
 		stringBuilder.append("<br>");
-		stringBuilder.append("  1. App logs ");
+
+		// set attached logs
+		List<File> files = report.getFiles();
+		if (files.size() > 0) {
+
+			stringBuilder.append("<b>Logs attached:</b>");
+			stringBuilder.append("<br>");
+			int i = 1;
+			for (File file : files) {
+				stringBuilder.append(i + ". " + file.getName());
+				stringBuilder.append("<br>");
+				i++;
+			}
+		}
 		stringBuilder.append("<br>");
-		stringBuilder.append("  2. System events logs ");
+
+		// set last log
+		String lastLog = report.getLastLog();
+		if (lastLog != null) {
+
+			stringBuilder.append("<b>Last log:</b>");
+			stringBuilder.append("<br>");
+
+			String[] splitted = lastLog.split(Constants.EXCEPTION_STRING_SPLITTER);
+			int i = 0;
+			for (String str : splitted) {
+				if (i >= 1) {
+					stringBuilder.append(" at ");
+				}
+				stringBuilder.append(str);
+				stringBuilder.append("<br>");
+				i++;
+			}
+
+		}
+
 		return stringBuilder.toString();
 	}
 

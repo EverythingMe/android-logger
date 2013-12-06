@@ -12,6 +12,7 @@ import com.evme.logger.formatters.SimpleLogEntryFormatter;
 import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
 import com.evme.logger.reports.Report;
+import com.evme.logger.reports.Report.ReportType;
 import com.evme.logger.tools.storage.IMemoryStorageTool;
 import com.evme.logger.tools.storage.StorageTool;
 
@@ -208,6 +209,7 @@ public class LogConfiguration {
 		 */
 		public Builder setCrashReport(Report report) {
 			this.mCrashReport = report;
+			this.mCrashReport.setReportType(ReportType.CRASH);
 			return this;
 		}
 
