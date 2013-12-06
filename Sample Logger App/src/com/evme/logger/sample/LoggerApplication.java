@@ -1,14 +1,16 @@
 package com.evme.logger.sample;
 
+import java.util.Calendar;
+
 import android.app.Application;
-import android.os.SystemClock;
 
 import com.evme.logger.Log;
-import com.evme.logger.LogConfiguration;
 import com.evme.logger.Log.Level;
 import com.evme.logger.Log.Types;
+import com.evme.logger.LogConfiguration;
+import com.evme.logger.LogConfiguration.CacheTargetType;
 import com.evme.logger.dispatchers.EmailReportDispatcher;
-import com.evme.logger.formatters.JsonLogEntryFormatter;
+import com.evme.logger.formatters.SimpleLogEntryFormatter;
 import com.evme.logger.receivers.BatteryReceiver;
 import com.evme.logger.receivers.ScreenReceiver;
 import com.evme.logger.reports.LogsFilter;
@@ -24,12 +26,12 @@ public class LoggerApplication extends Application {
 		LogsFilter logsFilter = new LogsFilter();
 		logsFilter.setLogLevel(Level.TRACE);
 		logsFilter.setLogTypes(Types.APP | Types.RECEIVER);
-		logsFilter.setStartTime(SystemClock.currentThreadTimeMillis() - 1000 * 60 * 60);
+		logsFilter.setFromTime(Calendar.getInstance().getTimeInMillis() - 1000*60*60);
 
 		// create crash report definition
 		Report crashReport = new Report.Builder()
 			.setIncludeDeviceInfo(true)
-			.setMergeLogs(false)
+			.setMergeLogs(true)
 			.setLogsFilter(logsFilter)
 			.build();
 		
@@ -40,8 +42,10 @@ public class LoggerApplication extends Application {
 			.addCrashDispatcher(new EmailReportDispatcher("roman@everything.me"))
 			.setCrashReport(crashReport)
 			.setLogPriority(Thread.MIN_PRIORITY)
-			.setLogQueueListMaxSize(100)
-			.setLogEntryFormatter(new JsonLogEntryFormatter())
+			.setMemoryBufferSize(5)
+			.setLogEntryFormatter(new SimpleLogEntryFormatter())
+			.setCacheTargetType(CacheTargetType.EXTERNAL)
+			.setMaxHistoryDays(7)
 			.build();
 
 		// set and start 
