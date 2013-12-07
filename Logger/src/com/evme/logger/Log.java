@@ -97,7 +97,7 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * Start logging
+	 * Start logger after you set configuration
 	 */
 	public static void start() {
 
@@ -108,6 +108,21 @@ public class Log implements Callback {
 		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
 			systemReceiver.register(mConfiguration.getContext());
 		}
+	}
+
+	/**
+	 * Start logger with default configuration
+	 * 
+	 * @param context
+	 */
+	public static void start(Context context) {
+
+		if (mConfiguration == null) {
+			mConfiguration = new LogConfiguration.Builder(context).build();
+		}
+
+		start();
+
 	}
 
 	/**
@@ -420,7 +435,7 @@ public class Log implements Callback {
 		LogEntry logEntry = new LogEntry();
 		logEntry.type = Types.RECEIVER;
 		logEntry.bundle = bundle;
-		logEntry.name =name;
+		logEntry.name = name;
 
 		getInstance().logImpl(logEntry);
 	}

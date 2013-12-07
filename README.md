@@ -21,15 +21,7 @@ public class YourApplication extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-		// set very basic configuration
-		LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
-			.build();
-			
-		// start logger
-		Log.setConfiguration(logConfiguration);
-		Log.start()
-			
+		Log.start(this);
 		...
 	}
 }
@@ -79,6 +71,10 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 	.setLogEntryFormatter(new JsonLogEntryFormatter())
 	...
 	.build();
+
+// set configuration and start	
+Log.setConfiguration(logConfiguration);
+Log.start();
 ```
 
 ### 2. System events
@@ -98,6 +94,10 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 	.addSystemReceiver(new ScreenReceiver())
 	...
 	.build();
+	
+// set configuration and start	
+Log.setConfiguration(logConfiguration);
+Log.start();
 ```
 
 ### 3. Reporting
@@ -138,6 +138,10 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
     .setCrashReport(crashReport)
     ...
     .build();
+
+// set configuration and start	
+Log.setConfiguration(logConfiguration);
+Log.start();
 ```
 
 ### 4. More
