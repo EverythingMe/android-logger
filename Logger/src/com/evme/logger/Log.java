@@ -158,29 +158,36 @@ public class Log implements Callback {
 			@Override
 			public void uncaughtException(final Thread t, final Throwable e) {
 
-				// log crash exception
-				Log.e(this, "Crash", e);
+				// we check if the crash was because of the logger
+				if (t.getName().equals(LOG)) {
+					// currently do nothing, the logger crashed for some reason
+					android.util.Log.e(LOG, "Logger thread crashed", e);
+					stop();
+				} else {
 
-				// flush all logs from memory into disk
-				flushMemory(new PostTask() {
+					// log crash exception
+					Log.e(this, "Crash", e);
 
-					@Override
-					public void run() {
+					// flush all logs from memory into disk
+					flushMemory(new PostTask() {
 
-						// get crash report
-						Report crashReport = mConfiguration.getCrashReport();
+						@Override
+						public void run() {
 
-						// deliver to crash dispatchers
-						List<ReportDispatcher> dispatchers = mConfiguration.getCrashDispatchers();
-						for (ReportDispatcher reportDispatcher : dispatchers) {
-							reportDispatcher.dispatch(crashReport);
+							// get crash report
+							Report crashReport = mConfiguration.getCrashReport();
+
+							// deliver to crash dispatchers
+							List<ReportDispatcher> dispatchers = mConfiguration.getCrashDispatchers();
+							for (ReportDispatcher reportDispatcher : dispatchers) {
+								reportDispatcher.dispatch(crashReport);
+							}
 						}
-					}
-				});
+					});
 
-				// continue and show to the user the crash
-				defaultUncaughtExceptionHandler.uncaughtException(t, e);
-
+					// continue and show to the user the crash
+					defaultUncaughtExceptionHandler.uncaughtException(t, e);
+				}
 			}
 
 		};
