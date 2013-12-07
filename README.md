@@ -74,7 +74,7 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 
 // set configuration and start	
 Log.setConfiguration(logConfiguration);
-Log.start();
+Log.start(this);
 ```
 
 ### 2. System events
@@ -97,7 +97,7 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 	
 // set configuration and start	
 Log.setConfiguration(logConfiguration);
-Log.start();
+Log.start(this);
 ```
 
 ### 3. Reporting
@@ -126,7 +126,7 @@ Report crashReport = new Report.Builder()
     .setIncludeDeviceInfo(true)
     .setMergeLogs(true)
     .setLogsFilter(logsFilter)
-    .build();
+    .build(this);
 ```
 
 **Set crash configuration:**
@@ -141,7 +141,7 @@ LogConfiguration logConfiguration = new LogConfiguration.Builder(this)
 
 // set configuration and start	
 Log.setConfiguration(logConfiguration);
-Log.start();
+Log.start(this);
 ```
 
 ### 4. More

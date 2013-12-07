@@ -50,7 +50,7 @@ public class LoggerApplication extends Application {
 
 		// set and start 
 		Log.setConfiguration(logConfiguration);
-		Log.start();
+		Log.start(this);
 
 	}
 

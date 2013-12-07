@@ -97,20 +97,6 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * Start logger after you set configuration
-	 */
-	public static void start() {
-
-		// set uncaught exception handling and unregister all receivers
-		setUncaughtException();
-
-		// register all receivers
-		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
-			systemReceiver.register(mConfiguration.getContext());
-		}
-	}
-
-	/**
 	 * Start logger with default configuration
 	 * 
 	 * @param context
@@ -121,8 +107,13 @@ public class Log implements Callback {
 			mConfiguration = new LogConfiguration.Builder(context).build();
 		}
 
-		start();
+		// set uncaught exception handling and unregister all receivers
+		setUncaughtException();
 
+		// register all receivers
+		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
+			systemReceiver.register(mConfiguration.getContext());
+		}
 	}
 
 	/**
