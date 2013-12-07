@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.Html;
 
-import com.evme.logger.Log;
 import com.evme.logger.helpers.Constants;
 import com.evme.logger.helpers.Utils;
 import com.evme.logger.receivers.SystemReceiver;
@@ -50,7 +49,7 @@ public class EmailReportDispatcher implements ReportDispatcher {
 		intent.putExtra(Intent.EXTRA_STREAM, uris);
 		Intent createChooser = Intent.createChooser(intent, "Send Log Report");
 		createChooser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		Log.context.startActivity(createChooser);
+		report.getLogConfiguration().getContext().startActivity(createChooser);
 	}
 
 	/**

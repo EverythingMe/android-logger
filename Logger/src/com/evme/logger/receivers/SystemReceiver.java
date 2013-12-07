@@ -5,6 +5,8 @@ import android.content.Context;
 public interface SystemReceiver {
 	
 	void register(Context context);
+	
+	boolean isRegistered();
 
 	String getLoggerName();
 

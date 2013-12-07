@@ -49,7 +49,7 @@ public class LoggerApplication extends Application {
 			.build();
 
 		// set and start 
-		Log.setConfiguration(logConfiguration);
+		Log.setConfiguration(logConfiguration);  
 		Log.start(this);
 
 	}

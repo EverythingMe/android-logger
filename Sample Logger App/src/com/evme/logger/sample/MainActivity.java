@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void run() {
 				Log.i(this, "Info message in other thread");
+				// Integer.valueOf("aa");
 			}
 		}, "My thread");
 		thread.setPriority(Thread.MAX_PRIORITY);
@@ -30,9 +31,15 @@ public class MainActivity extends Activity {
 		Log.e(this, "Error message 5");
 		Log.e(this, "Error message 6", new RuntimeException("Something strange"));
 
-		Integer.valueOf("aa");
+		// Integer.valueOf("aa");
 
 		Log.d(this, "Debug message 7");
 	}
-
+	
+	@Override
+	protected void onDestroy() {
+		Log.stop();
+		super.onDestroy();
+	}
+	
 }

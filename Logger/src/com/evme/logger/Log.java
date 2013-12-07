@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.util.SparseArray;
 
@@ -43,7 +44,7 @@ public class Log implements Callback {
 	// instance and configuration
 	private static Log mInstance = null;
 	private static LogConfiguration mConfiguration;
-	public static Context context;
+	private static Context context;
 
 	private static UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
@@ -73,6 +74,10 @@ public class Log implements Callback {
 		mLogQueueList = new LogQueueList();
 		MAX_SIZE = mConfiguration.getQueueMaxSize();
 
+		// register all receivers
+		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
+			systemReceiver.register(mConfiguration.getContext());
+		}
 	}
 
 	private static Log getInstance() {
@@ -109,11 +114,35 @@ public class Log implements Callback {
 
 		// set uncaught exception handling and unregister all receivers
 		setUncaughtException();
+	}
 
-		// register all receivers
-		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
-			systemReceiver.register(mConfiguration.getContext());
+	public static void stop() {
+
+		// unregister from system events
+		if (mConfiguration != null) {
+			List<SystemReceiver> systemReceivers = mConfiguration.getSystemReceivers();
+			for (SystemReceiver systemReceiver : systemReceivers) {
+				systemReceiver.unregister(context);
+			}
 		}
+
+		// flush what is remained
+		flushMemory(new PostTask() {
+
+			@Override
+			public void run() {
+
+				if (!Looper.myLooper().equals(Looper.getMainLooper())) {
+
+					// set the instance to null
+					mInstance = null;
+
+					// stop the logger looper thread
+					Looper.myLooper().quit();
+				}
+			}
+		});
+
 	}
 
 	/**
@@ -159,15 +188,6 @@ public class Log implements Callback {
 		// set our crash handler
 		Thread.setDefaultUncaughtExceptionHandler(handler);
 
-	}
-
-	/**
-	 * Stop logging
-	 */
-	public static void stop() {
-		for (SystemReceiver systemReceiver : mConfiguration.getSystemReceivers()) {
-			systemReceiver.unregister(mConfiguration.getContext());
-		}
 	}
 
 	/**

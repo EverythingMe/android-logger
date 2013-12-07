@@ -17,35 +17,39 @@ public class ScreenReceiver implements SystemReceiver {
 
 	private static final String NAME = "Screen";
 	private BroadcastReceiver screenReceiver;
+	private boolean isRegistered = false;
 
 	@Override
 	public void register(Context context) {
 
-		// screen broadcast
-		screenReceiver = new BroadcastReceiver() {
+		if (!isRegistered()) {
+			// screen broadcast
+			screenReceiver = new BroadcastReceiver() {
 
-			// When Event is published, onReceive method is called
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+				// When Event is published, onReceive method is called
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
 
-					Bundle bundle = new Bundle();
-					bundle.putString("status", "ON");
-					Log.system(getLoggerName(), bundle);
+						Bundle bundle = new Bundle();
+						bundle.putString("status", "ON");
+						Log.system(getLoggerName(), bundle);
 
-				} else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+					} else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
 
-					Bundle bundle = new Bundle();
-					bundle.putString("status", "OFF");
-					Log.system(getLoggerName(), bundle);
+						Bundle bundle = new Bundle();
+						bundle.putString("status", "OFF");
+						Log.system(getLoggerName(), bundle);
 
+					}
 				}
-			}
-		};
+			};
 
-		IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		filter.addAction(Intent.ACTION_SCREEN_OFF);
-		context.registerReceiver(screenReceiver, filter);
+			IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+			filter.addAction(Intent.ACTION_SCREEN_OFF);
+			context.registerReceiver(screenReceiver, filter);
+			isRegistered = true;
+		}
 	}
 
 	@Override
@@ -55,7 +59,15 @@ public class ScreenReceiver implements SystemReceiver {
 
 	@Override
 	public void unregister(Context context) {
-		context.unregisterReceiver(screenReceiver);
+		if (isRegistered()) {
+			context.unregisterReceiver(screenReceiver);
+			isRegistered = false;
+		}
+	}
+
+	@Override
+	public boolean isRegistered() {
+		return isRegistered;
 	}
 
 }
