@@ -12,12 +12,11 @@ public class Constants {
 	public static final String DIR_APP = DIR_LOGS + File.separator + "App";
 	public static final String DIR_RECEIVERS = DIR_LOGS + File.separator + "Receivers";
 
-	// Logs
+	// Files
 	public static final String LOG_APP = "log_app_%s.txt";
 	public static final String LOG_RECEIVER = "log_receivers_%s.txt";
-
-	// Report
 	public static final String REPORT_MERGE = "log_merge.txt";
+	public static final String DEVICE_INFO = "device_info.txt";
 
 	// Dates & Regex
 	public static final String LOG_PREFIX = "[#]";

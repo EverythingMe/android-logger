@@ -11,9 +11,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.content.Context;
+
 import com.evme.logger.cache.Cache;
 import com.evme.logger.helpers.Constants;
 import com.evme.logger.tools.date.DateTool;
+import com.evme.logger.tools.device.DeviceTool;
 
 /**
  * Report generator
@@ -84,13 +87,28 @@ public class ReportGenerator {
 			results.add(cache.getFile(reportDir, Constants.REPORT_MERGE));
 		}
 
-		// TODO - append device info
+		// append device info
 		if (report.getIncludeDeviceInfo()) {
-
+			List<String> deviceInfos = prepareDeviceInfo(cache.getLogConfiguration().getContext());
+			report.setDeviceInfos(deviceInfos);
+			cache.createFile(reportDir, Constants.DEVICE_INFO);
+			cache.appendFile(reportDir, Constants.DEVICE_INFO, deviceInfos);
+			results.add(cache.getFile(reportDir, Constants.DEVICE_INFO));
 		}
 
 		// set the results
 		report.setFiles(results);
+	}
+
+	private List<String> prepareDeviceInfo(Context context) {
+		
+		List<String> infos = new ArrayList<String>();
+		DeviceTool deviceTool = DeviceTool.getIntance(context);
+		infos.add("Model: " + deviceTool.getDeviceModel());
+		infos.add("Brand: " + deviceTool.getBrand());
+		infos.add("Product: " + deviceTool.getProduct());
+		infos.add("SDK: " + deviceTool.getAndroidVersion());
+		return infos;
 	}
 
 	/**

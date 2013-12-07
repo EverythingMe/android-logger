@@ -161,8 +161,10 @@ public class Cache {
 	 * @param file
 	 */
 	public void createFile(String dir, String file) {
-		if (!mStorage.isFileExist(dir, file)) {
-			mStorage.createFile(dir, file, "");
+		
+		String fileName = getLogFileNameToday(file);
+		if (!mStorage.isFileExist(dir, fileName)) {
+			mStorage.createFile(dir, fileName, "");
 		}
 	}
 

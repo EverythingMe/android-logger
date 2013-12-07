@@ -70,6 +70,17 @@ public class EmailReportDispatcher implements ReportDispatcher {
 			stringBuilder.append("<br>");
 		}
 
+		// device info
+		if (report.getDeviceInfos().size() > 0) {
+			stringBuilder.append("<b>Device info:</b>");
+			stringBuilder.append("<br>");
+			for (String info : report.getDeviceInfos()) {
+				stringBuilder.append(info);
+				stringBuilder.append("<br>");
+			}
+		}
+		stringBuilder.append("<br>");
+
 		// configuration
 		stringBuilder.append("<b>Report configuration:</b>");
 		stringBuilder.append("<br>");

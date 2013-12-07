@@ -25,6 +25,7 @@ public class Report {
 	private String mLastLog = null;
 	private ReportType mReportType = null;
 	private LogConfiguration mLogConfiguration = null;
+	private List<String> mDeviceInfos;
 
 	private Report(Builder builder) {
 		this.mIncludeDeviceInfo = builder.mIncludeDeviceInfo;
@@ -134,6 +135,15 @@ public class Report {
 	}
 
 	/**
+	 * Set device infos
+	 * 
+	 * @param deviceInfos
+	 */
+	void setDeviceInfos(List<String> deviceInfos) {
+		mDeviceInfos = deviceInfos;
+	}
+
+	/**
 	 * Set report type
 	 * 
 	 * @param reportType
@@ -217,6 +227,15 @@ public class Report {
 	 */
 	public String getLastLog() {
 		return mLastLog;
+	}
+
+	/**
+	 * Get device information
+	 * 
+	 * @return
+	 */
+	public List<String> getDeviceInfos() {
+		return mDeviceInfos;
 	}
 
 }
