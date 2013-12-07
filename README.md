@@ -100,6 +100,12 @@ Log.setConfiguration(logConfiguration);
 Log.start(this);
 ```
 
+To stop events from being logged once you leave the app. Add this line into main `Activity` in `onDestroy()` method, or any other place where you decide to stop the logger.
+
+``` java
+Log.stop();
+```
+
 ### 3. Reporting
 Report and send your logs if crash happened or just by demand. This logger library allows you to implement the dispatcher that will take the `Report` and send/share it to your server or any other place.
 
