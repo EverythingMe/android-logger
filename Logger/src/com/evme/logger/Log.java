@@ -49,8 +49,8 @@ public class Log implements Callback {
 	private static UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
 	// thread and handler
-	private static final int WHAT_FLUSH = 1001;
-	private static final int WHAT_ADD_LOG = 1002;
+	private static final int __FLUSH = 1001;
+	private static final int __ADD_LOG = 1002;
 
 	// looper thread
 	private final HandlerThread mHandlerThread;
@@ -471,7 +471,7 @@ public class Log implements Callback {
 	private void flushMemoryImpl(PostTask postTask) {
 		int postTaskKey = atomicInteger.getAndIncrement();
 		postTasks.append(postTaskKey, postTask);
-		Message message = Message.obtain(mHandler, WHAT_FLUSH, postTaskKey, 0);
+		Message message = Message.obtain(mHandler, __FLUSH, postTaskKey, 0);
 		message.sendToTarget();
 	}
 
@@ -523,7 +523,7 @@ public class Log implements Callback {
 		logEntry.time = Calendar.getInstance().getTimeInMillis();
 
 		// post to new thread
-		Message message = Message.obtain(mHandler, WHAT_ADD_LOG, logEntry);
+		Message message = Message.obtain(mHandler, __ADD_LOG, logEntry);
 		message.sendToTarget();
 
 	}
@@ -533,7 +533,7 @@ public class Log implements Callback {
 
 		int what = msg.what;
 		switch (what) {
-		case WHAT_FLUSH:
+		case __FLUSH:
 
 			/*
 			 * save all logs in batch on disk
@@ -552,7 +552,7 @@ public class Log implements Callback {
 
 			break;
 
-		case WHAT_ADD_LOG:
+		case __ADD_LOG:
 
 			/*
 			 * get the log entry and add to queue
@@ -565,7 +565,7 @@ public class Log implements Callback {
 			 * queue on disk
 			 */
 			if (mLogQueueList.size() == MAX_SIZE) {
-				Message message = Message.obtain(mHandler, WHAT_FLUSH, -1, 0);
+				Message message = Message.obtain(mHandler, __FLUSH, -1, 0);
 				mHandler.sendMessageAtFrontOfQueue(message);
 			}
 

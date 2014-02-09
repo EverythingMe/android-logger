@@ -9,7 +9,8 @@ import com.evme.logger.LogConfiguration;
 import com.evme.logger.formatters.LogEntryFormatter;
 import com.evme.logger.helpers.Constants;
 import com.evme.logger.tools.date.DateTool;
-import com.evme.logger.tools.storage.IMemoryStorageTool;
+import com.sromku.simple.storage.Storage;
+import com.sromku.simple.storage.helpers.SizeUnit;
 
 /**
  * TODO - This is temporal solution for persisting and flushing logs into cache.
@@ -22,7 +23,7 @@ import com.evme.logger.tools.storage.IMemoryStorageTool;
 public class Cache {
 
 	private static Cache mInstance = null;
-	private static IMemoryStorageTool mStorage;
+	private static Storage mStorage;
 	private static LogConfiguration mConfiguration;
 
 	private Cache() {
@@ -96,19 +97,21 @@ public class Cache {
 
 		// TODO - create batch of logs and append only one time
 		for (LogEntry logEntry : logs) {
-
+			String dirName = null;
+			String fileName = null;
 			switch (logEntry.type) {
-
 			case Log.Types.RECEIVER:
-				String formattedReceiverLog = logEntryFormatter.format(logEntry);
-				appendFile(Constants.DIR_RECEIVERS, Constants.LOG_RECEIVER, formattedReceiverLog);
+				dirName = Constants.DIR_RECEIVERS;
+				fileName = Constants.LOG_RECEIVER;
 				break;
-
 			case Log.Types.APP:
-				String formattedAppLog = logEntryFormatter.format(logEntry);
-				appendFile(Constants.DIR_APP, Constants.LOG_APP, formattedAppLog);
+				dirName = Constants.DIR_APP;
+				fileName = Constants.LOG_APP;
 				break;
 			}
+			// append entry to file
+			String formattedEntry = logEntryFormatter.format(logEntry);
+			appendFile(dirName, fileName, formattedEntry);
 		}
 	}
 
@@ -123,7 +126,7 @@ public class Cache {
 	}
 
 	/**
-	 * Append to log to file.
+	 * Append log to file.
 	 * 
 	 * @param log
 	 *            The log to add
@@ -132,10 +135,23 @@ public class Cache {
 	 */
 	public void appendFile(String dirName, String fileNamePattern, String log) {
 
-		// we check if file is missing, if so we first create it
 		String fileName = getLogFileNameToday(fileNamePattern);
-		createFile(dirName, fileName);
-
+		if (!mStorage.isFileExist(dirName, fileName)) {
+			// we check if file is missing, if so we first create it
+			createFile(dirName, fileName);
+		}
+		else {
+			// we check for max size of the file. if it reached the max size,
+			// then we rename the file
+			File file = mStorage.getFile(dirName, fileName);
+			if (mStorage.getSize(file, SizeUnit.MB) > mConfiguration.getFileMaxMbSize()) {
+				String newName = getLogFileNameTimeToday(fileNamePattern);
+				mStorage.rename(file, newName);
+				
+				// create the file of the day from 0
+				createFile(dirName, fileName);
+			}
+		}
 		// append
 		mStorage.appendFile(dirName, fileName, log.getBytes());
 	}
@@ -161,7 +177,7 @@ public class Cache {
 	 * @param file
 	 */
 	public void createFile(String dir, String file) {
-		
+
 		String fileName = getLogFileNameToday(file);
 		if (!mStorage.isFileExist(dir, fileName)) {
 			mStorage.createFile(dir, fileName, "");
@@ -202,6 +218,18 @@ public class Cache {
 	 */
 	private String getLogFileNameToday(String logFileNamePattern) {
 		String dateStr = DateTool.getString(DateTool.getNowDate(), Constants.DATE_LOG_DAY_FORMAT);
+		String fileName = String.format(logFileNamePattern, dateStr);
+		return fileName;
+	}
+	
+	/**
+	 * Get the file name of the log of today. For example: log_app_25_04 (12:04).txt
+	 * 
+	 * @param logFileNamePattern
+	 * @return
+	 */
+	private String getLogFileNameTimeToday(String logFileNamePattern) {
+		String dateStr = DateTool.getString(DateTool.getNowDate(), Constants.DATE_LOG_DAY_TIME_FORMAT);
 		String fileName = String.format(logFileNamePattern, dateStr);
 		return fileName;
 	}

@@ -13,8 +13,8 @@ import com.evme.logger.queues.LogQueueList;
 import com.evme.logger.receivers.SystemReceiver;
 import com.evme.logger.reports.Report;
 import com.evme.logger.reports.Report.ReportType;
-import com.evme.logger.tools.storage.IMemoryStorageTool;
-import com.evme.logger.tools.storage.StorageTool;
+import com.sromku.simple.storage.SimpleStorage;
+import com.sromku.simple.storage.Storage;
 
 /**
  * Configuration of the logger
@@ -23,6 +23,11 @@ import com.evme.logger.tools.storage.StorageTool;
  */
 public class LogConfiguration {
 
+	public static final int DEFAULT_MEMORY_BUFFER_SIZE = 20;
+	public static final int DEFAULT_HISTORY_DAYS = 3;
+	public static final double DEFAULT_MAX_FILE_SIZE_MB = 2d;
+	public static final double DEFAULT_LIMIT_FILES_SIZE_MB = 10d;
+	
 	private final List<ReportDispatcher> mCrashDispatchers;
 	private final LogEntryFormatter mLogEntryFormatter;
 	private final List<SystemReceiver> mReceivers;
@@ -30,9 +35,11 @@ public class LogConfiguration {
 	private int mThreadPriority;
 	private Report mCrashReport;
 	private boolean mIsInMemoryOnly;
-	private IMemoryStorageTool mStorage;
+	private Storage mStorage;
 	private final Context mContext;
 	private int mHistoryDays;
+	private double mFileMaxMbSize;
+	private double mFilesDayMbSizeLimit;
 
 	private LogConfiguration(Builder builder) {
 		this.mReceivers = builder.mReceivers;
@@ -43,6 +50,8 @@ public class LogConfiguration {
 		this.mThreadPriority = builder.mThreadPriority;
 		this.mCrashReport = builder.mCrashReport;
 		this.mHistoryDays = builder.mHistoryDays;
+		this.mFileMaxMbSize = builder.mFileMaxMbSize;
+		this.mFilesDayMbSizeLimit = builder.mFilesDayMbSizeLimit;
 
 		switch (builder.mCacheTargetType) {
 		case MEMORY:
@@ -50,14 +59,15 @@ public class LogConfiguration {
 			break;
 		case INTERNAL:
 			mIsInMemoryOnly = false;
-			mStorage = StorageTool.getInternalStorageTool(mContext);
+			mStorage = SimpleStorage.getInternalStorage(mContext);
 			break;
 		case EXTERNAL:
 			mIsInMemoryOnly = false;
-			if (StorageTool.isExternalStorageWritable()) {
-				mStorage = StorageTool.getExternalStorageTool();
-			} else {
-				mStorage = StorageTool.getInternalStorageTool(mContext);
+			if (SimpleStorage.isExternalStorageWritable()) {
+				mStorage = SimpleStorage.getExternalStorage();
+			}
+			else {
+				mStorage = SimpleStorage.getInternalStorage(mContext);
 			}
 			break;
 		default:
@@ -66,7 +76,9 @@ public class LogConfiguration {
 	}
 
 	public enum CacheTargetType {
-		MEMORY, INTERNAL, EXTERNAL
+		MEMORY,
+		INTERNAL,
+		EXTERNAL
 	}
 
 	/**
@@ -149,7 +161,7 @@ public class LogConfiguration {
 	 * 
 	 * @return {@link IMemoryStorageTool}
 	 */
-	public IMemoryStorageTool getStorage() {
+	public Storage getStorage() {
 		return mStorage;
 	}
 
@@ -162,6 +174,26 @@ public class LogConfiguration {
 		return mHistoryDays;
 	}
 
+	/**
+	 * Get the max size of the file that will hold the log data.
+	 * 
+	 * @return Max file size in MB
+	 */
+	public double getFileMaxMbSize() {
+		return mFileMaxMbSize;
+	}
+
+	/**
+	 * Get the maximum size in MB of all files that are created for the same
+	 * day. It is important set the values such that you will know exactly how
+	 * much memory you can use.
+	 * 
+	 * @return Limit of the MB to use in the same day
+	 */
+	public double getFilesDayMbSizeLimit() {
+		return mFilesDayMbSizeLimit;
+	}
+
 	public static class Builder {
 
 		private List<ReportDispatcher> mCrashDispatchers = new ArrayList<ReportDispatcher>();
@@ -169,10 +201,12 @@ public class LogConfiguration {
 		private LogEntryFormatter mLogEntryFormatter = new SimpleLogEntryFormatter();
 		private int mThreadPriority = Thread.MIN_PRIORITY;
 		private CacheTargetType mCacheTargetType = CacheTargetType.EXTERNAL;
-		private Integer mMemoryBufferSize = 20;
+		private Integer mMemoryBufferSize = DEFAULT_MEMORY_BUFFER_SIZE;
 		private Report mCrashReport;
 		private Context mContext;
-		private int mHistoryDays;
+		private int mHistoryDays = DEFAULT_HISTORY_DAYS;
+		private double mFileMaxMbSize = DEFAULT_MAX_FILE_SIZE_MB;
+		private double mFilesDayMbSizeLimit = DEFAULT_LIMIT_FILES_SIZE_MB;
 
 		public Builder(Context context) {
 			this.mContext = context;
@@ -311,6 +345,26 @@ public class LogConfiguration {
 		public Builder setMaxHistoryDays(int days) {
 			mHistoryDays = days;
 			return this;
+		}
+		
+		/**
+		 * Set the max size of the file that will hold the log data.
+		 * 
+		 * @return Max file size in MB
+		 */
+		public void setFileMaxMbSize(double fileMaxMbSize) {
+			mFileMaxMbSize = fileMaxMbSize;
+		}
+
+		/**
+		 * Set the maximum size in MB of all files that are created for the same
+		 * day. It is important set the values such that you will know exactly how
+		 * much memory you can use.
+		 * 
+		 * @return Limit of the MB to use in the same day
+		 */
+		public void setFilesDayMbSizeLimit(double filesDayMbSizeLimit) {
+			mFilesDayMbSizeLimit = filesDayMbSizeLimit;
 		}
 
 		public LogConfiguration build() {
