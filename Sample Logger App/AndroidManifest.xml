@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.evme.logger.sample"
+    package="me.everything.logger.sample"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -12,12 +12,12 @@
     
     <application
         android:allowBackup="true"
-        android:name="com.evme.logger.sample.LoggerApplication"
+        android:name="me.everything.logger.sample.LoggerApplication"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.evme.logger.sample.MainActivity"
+            android:name="me.everything.logger.sample.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
