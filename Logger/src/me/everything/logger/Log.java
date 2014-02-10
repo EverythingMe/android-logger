@@ -147,6 +147,22 @@ public class Log implements Callback {
 		});
 
 	}
+	
+	public static void send() {
+		// flush all logs from memory into disk
+		flushMemory(new PostTask() {
+			@Override
+			public void run() {
+				// get on demand report
+				Report onDemandReport = mConfiguration.getOnDemandReport();
+				// deliver to crash dispatchers
+				List<ReportDispatcher> dispatchers = mConfiguration.getOnDemandDispatchers();
+				for (ReportDispatcher reportDispatcher : dispatchers) {
+					reportDispatcher.dispatch(onDemandReport);
+				}
+			}
+		});
+	}
 
 	/**
 	 * Will be used to trace the ‘running’ lines of code.This will be used in:

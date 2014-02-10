@@ -258,11 +258,11 @@ public class LogConfiguration {
 		 * Add dispatchers that will deliver the crash reports automatically,
 		 * once crash occurred.
 		 * 
-		 * @param crashDispatcher
+		 * @param dispatcher
 		 * @return
 		 */
-		public Builder addCrashDispatcher(ReportDispatcher crashDispatcher) {
-			mCrashDispatchers.add(crashDispatcher);
+		public Builder addCrashDispatcher(ReportDispatcher dispatcher) {
+			mCrashDispatchers.add(dispatcher);
 			return this;
 		}
 
@@ -270,11 +270,11 @@ public class LogConfiguration {
 		 * Add dispatchers that will deliver the crash reports when the user
 		 * asks for.
 		 * 
-		 * @param crashDispatcher
+		 * @param dispatcher
 		 * @return
 		 */
-		public Builder addOnDemandDispatcher(ReportDispatcher crashDispatcher) {
-			mOnDemandDispatchers.add(crashDispatcher);
+		public Builder addOnDemandDispatcher(ReportDispatcher dispatcher) {
+			mOnDemandDispatchers.add(dispatcher);
 			return this;
 		}
 

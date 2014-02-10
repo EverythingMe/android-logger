@@ -28,7 +28,7 @@ public class LoggerApplication extends Application {
 		logsFilter.setFromTime(Calendar.getInstance().getTimeInMillis() - 1000*60*60);
 
 		// create crash report definition
-		Report crashReport = new Report.Builder()
+		Report report = new Report.Builder()
 			.setIncludeDeviceInfo(true)
 			.setMergeLogs(true)
 			.setLogsFilter(logsFilter)
@@ -41,7 +41,8 @@ public class LoggerApplication extends Application {
 			.addCrashDispatcher(new EmailReportDispatcher("roman@everything.me"))
 			.addOnDemandDispatcher(new EmailReportDispatcher("roman@everything.me"))
 			.setLoggerRootDirectory("SAMPLE APP")
-			.setCrashReport(crashReport)
+			.setCrashReport(report)
+			.setOnDemandReport(report)
 			.setLogPriority(Thread.MIN_PRIORITY)
 			.setMemoryBufferSize(5)
 			.setLogEntryFormatter(new SimpleLogEntryFormatter())

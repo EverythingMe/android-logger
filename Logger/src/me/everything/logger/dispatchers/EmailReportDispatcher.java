@@ -84,15 +84,17 @@ public class EmailReportDispatcher implements ReportDispatcher, OnCreationListen
 		stringBuilder.append("<br>");
 
 		// configuration
-		stringBuilder.append("<b>Report configuration:</b>");
-		stringBuilder.append("<br>");
-
-		// from time
-		stringBuilder.append("- From time: ");
-		String fromTime = DateTool.getString(DateTool.getDate(report.getLogsFilter().getFromTime()), Constants.DATE_FORMAT);
-		stringBuilder.append(fromTime);
-		stringBuilder.append("<br>");
-		stringBuilder.append("<br>");
+		if (report.getLogsFilter() != null) {
+    		stringBuilder.append("<b>Report configuration:</b>");
+    		stringBuilder.append("<br>");
+    
+    		// from time
+    		stringBuilder.append("- From time: ");
+    		String fromTime = DateTool.getString(DateTool.getDate(report.getLogsFilter().getFromTime()), Constants.DATE_FORMAT);
+    		stringBuilder.append(fromTime);
+    		stringBuilder.append("<br>");
+    		stringBuilder.append("<br>");
+		}
 
 		// // log level
 		// stringBuilder.append("- Log level: ");

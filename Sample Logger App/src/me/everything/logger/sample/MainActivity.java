@@ -36,8 +36,8 @@ public class MainActivity extends Activity {
 
 		Log.d(TAG, "Debug message 7");
 //		throw new RuntimeException("Something strange");
-		
-		
+
+		Log.send();
 	}
 	
 	@Override
