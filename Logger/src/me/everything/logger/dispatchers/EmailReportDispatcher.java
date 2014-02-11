@@ -15,7 +15,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.Html;
 
-public class EmailReportDispatcher implements ReportDispatcher, OnCreationListener {
+public class EmailReportDispatcher extends AbstractReportDispatcher implements OnCreationListener {
 
 	private final String[] emails;
 
@@ -25,6 +25,7 @@ public class EmailReportDispatcher implements ReportDispatcher, OnCreationListen
 
 	@Override
 	public void dispatch(Report report) {
+		startDispatching();
 		report.create(this);
 	}
 
@@ -51,8 +52,9 @@ public class EmailReportDispatcher implements ReportDispatcher, OnCreationListen
 		Intent createChooser = Intent.createChooser(intent, "Send Log Report");
 		createChooser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		report.getLogConfiguration().getContext().startActivity(createChooser);
+		stopDispatching();
 	}
-
+	
 	/**
 	 * Create content of the email
 	 * 

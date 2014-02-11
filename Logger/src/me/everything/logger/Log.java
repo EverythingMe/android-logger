@@ -7,12 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import me.everything.logger.cache.Cache;
 import me.everything.logger.dispatchers.ReportDispatcher;
+import me.everything.logger.dispatchers.ReportDispatcher.OnReportDispatchListener;
 import me.everything.logger.helpers.Constants;
 import me.everything.logger.helpers.Utils;
 import me.everything.logger.queues.LogQueueList;
 import me.everything.logger.receivers.SystemReceiver;
 import me.everything.logger.reports.Report;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,7 +21,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.SparseArray;
-
 
 public class Log implements Callback {
 
@@ -147,17 +146,67 @@ public class Log implements Callback {
 		});
 
 	}
-	
-	public static void send() {
+
+	/**
+	 * Call to send logs that by definition you made for 'on demand' report.
+	 * 
+	 * @param onSendListener
+	 */
+	public static void send(final OnSendListener onSendListener) {
+
+		final int __ON_INIT = 1;
+		final int __ON_START = 2;
+		final int __ON_FINIFH = 3;
+		final Handler handler = new Handler(new Callback() {
+
+			private int counter = 0;
+			private boolean isStarted = false;
+
+			@Override
+			public boolean handleMessage(Message msg) {
+				switch (msg.what) {
+				case __ON_INIT:
+					counter = msg.arg1;
+					break;
+				case __ON_START:
+					if (!isStarted) {
+						onSendListener.onStart();
+						isStarted = true;
+					}
+					break;
+				case __ON_FINIFH:
+					counter--;
+					if (counter <= 0) {
+						onSendListener.onFinish();
+					}
+					break;
+				}
+				return true;
+			}
+		});
+
 		// flush all logs from memory into disk
+		handler.sendEmptyMessage(__ON_START);
 		flushMemory(new PostTask() {
 			@Override
 			public void run() {
 				// get on demand report
 				Report onDemandReport = mConfiguration.getOnDemandReport();
-				// deliver to crash dispatchers
+				// deliver to 'on demand' dispatchers
 				List<ReportDispatcher> dispatchers = mConfiguration.getOnDemandDispatchers();
+				handler.sendMessage(Message.obtain(handler, __ON_INIT, dispatchers.size(), 0));
 				for (ReportDispatcher reportDispatcher : dispatchers) {
+					reportDispatcher.setOnReportDispatchListener(new OnReportDispatchListener() {
+						@Override
+						public void onStart() {
+							handler.sendEmptyMessage(__ON_START);
+						}
+
+						@Override
+						public void onFinish() {
+							handler.sendEmptyMessage(__ON_FINIFH);
+						}
+					});
 					reportDispatcher.dispatch(onDemandReport);
 				}
 			}
@@ -436,35 +485,35 @@ public class Log implements Callback {
 	 * Set handling uncaught exception
 	 */
 	private static void setUncaughtException() {
-	
+
 		defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-	
+
 		// crash handler
 		UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
-	
+
 			@Override
 			public void uncaughtException(final Thread t, final Throwable e) {
-	
+
 				// we check if the crash was because of the logger
 				if (t.getName().equals(LOG)) {
 					// currently do nothing, the logger crashed for some reason
 					android.util.Log.e(LOG, "Logger thread crashed", e);
 					stop();
 				} else {
-	
+
 					// log crash exception
 					Log.e(Log.class.getName(), "Crash", e);
-	
+
 					// flush all logs from memory into disk
 					flushMemory(new PostTask() {
-	
+
 						@Override
 						public void run() {
-	
+
 							// get crash report
 							Report crashReport = mConfiguration.getCrashReport();
 							crashReport.setCrashThrowable(e);
-	
+
 							// deliver to crash dispatchers
 							List<ReportDispatcher> dispatchers = mConfiguration.getCrashDispatchers();
 							for (ReportDispatcher reportDispatcher : dispatchers) {
@@ -472,14 +521,14 @@ public class Log implements Callback {
 							}
 						}
 					});
-	
+
 					// continue and show to the user the crash
 					defaultUncaughtExceptionHandler.uncaughtException(t, e);
 				}
 			}
-	
+
 		};
-	
+
 		// set our crash handler
 		Thread.setDefaultUncaughtExceptionHandler(handler);
 	}
@@ -610,10 +659,22 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * This task will be executed on Log looper thread
+	 * This listener is used in cases, when you decide to send a log report by
+	 * demand.
 	 * 
 	 * @author sromku
 	 * 
+	 */
+	public interface OnSendListener {
+		void onStart();
+
+		void onFinish();
+	}
+
+	/**
+	 * This task will be executed on Log looper thread
+	 * 
+	 * @author sromku
 	 */
 	public interface PostTask extends Runnable {
 
