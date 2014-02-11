@@ -11,11 +11,15 @@ public abstract class AbstractReportDispatcher implements ReportDispatcher {
 	}
 	
 	protected void startDispatching() {
-		mOnReportDispatchListener.onStart();
+		if (mOnReportDispatchListener != null) {
+			mOnReportDispatchListener.onStart();
+		}
 	}
 	
 	protected void stopDispatching() {
-		mOnReportDispatchListener.onFinish();
+		if (mOnReportDispatchListener != null) {
+			mOnReportDispatchListener.onFinish();
+		}
 	}
 
 }
