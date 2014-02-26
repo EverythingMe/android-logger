@@ -24,10 +24,11 @@ import com.sromku.simple.storage.Storage;
 public class LogConfiguration {
 
 	public static final int DEFAULT_MEMORY_BUFFER_SIZE = 20;
-	public static final int DEFAULT_HISTORY_DAYS = 3;
+	public static final int DEFAULT_HISTORY_DAYS = 5;
 	public static final double DEFAULT_MAX_FILE_SIZE_MB = 2d;
 	public static final double DEFAULT_LIMIT_FILES_SIZE_MB = 10d;
-
+	private static final String DEFAULT_ROOT_DIR = "Logger";
+	
 	private final List<ReportDispatcher> mCrashDispatchers;
 	private final List<ReportDispatcher> mOnDemandDispatchers;
 	private final LogEntryFormatter mLogEntryFormatter;
@@ -237,7 +238,7 @@ public class LogConfiguration {
 		private int mHistoryDays = DEFAULT_HISTORY_DAYS;
 		private double mFileMaxMbSize = DEFAULT_MAX_FILE_SIZE_MB;
 		private double mFilesDayMbSizeLimit = DEFAULT_LIMIT_FILES_SIZE_MB;
-		private String mRootDir;
+		private String mRootDir = DEFAULT_ROOT_DIR;
 
 		public Builder(Context context) {
 			this.mContext = context;

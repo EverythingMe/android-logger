@@ -214,7 +214,7 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * Will be used to trace the ‘running’ lines of code.This will be used in:
+	 * Will be used to trace the running lines of code.This will be used in:
 	 * <ul>
 	 * <li>entering methods</li>
 	 * <li>exiting methods</li>
@@ -230,7 +230,7 @@ public class Log implements Callback {
 	}
 
 	/**
-	 * Will be used to trace the ‘running’ lines of code.This will be used in:
+	 * Will be used to trace the running lines of code.This will be used in:
 	 * <ul>
 	 * <li><b>entering</b> methods</li>
 	 * <li><b>exiting</b> methods</li>
@@ -332,10 +332,10 @@ public class Log implements Callback {
 	 * <li>silence the problem, <b>empty try-catch</b>. If you in the situation
 	 * where the catch statement is empty, put here at least warning log</li>
 	 * <li><b>workarounds</b> and <b>loop</b> implementations. For example, if
-	 * we make make server call and didn’t get a response in X time, then we can
+	 * we make make server call and didn't get a response in X time, then we can
 	 * call it two more times before giving up. This is the place to log warning
 	 * message</li>
-	 * <li><b>cache</b> problems. if we tried to get data from cache and didn’t
+	 * <li><b>cache</b> problems. if we tried to get data from cache and didn't
 	 * succeed</li>
 	 * </ul>
 	 * 
@@ -355,10 +355,10 @@ public class Log implements Callback {
 	 * <li>silence the problem, <b>empty try-catch</b>. If you in the situation
 	 * where the catch statement is empty, put here at least warning log</li>
 	 * <li><b>workarounds</b> and <b>loop</b> implementations. For example, if
-	 * we make make server call and didn’t get a response in X time, then we can
+	 * we make make server call and didn't get a response in X time, then we can
 	 * call it two more times before giving up. This is the place to log warning
 	 * message</li>
-	 * <li><b>cache</b> problems. if we tried to get data from cache and didn’t
+	 * <li><b>cache</b> problems. if we tried to get data from cache and didn't
 	 * succeed</li>
 	 * </ul>
 	 * 
@@ -380,10 +380,10 @@ public class Log implements Callback {
 	 * <li>silence the problem, <b>empty try-catch</b>. If you in the situation
 	 * where the catch statement is empty, put here at least warning log</li>
 	 * <li><b>workarounds</b> and <b>loop</b> implementations. For example, if
-	 * we make make server call and didn’t get a response in X time, then we can
+	 * we make make server call and didn't get a response in X time, then we can
 	 * call it two more times before giving up. This is the place to log warning
 	 * message</li>
-	 * <li><b>cache</b> problems. if we tried to get data from cache and didn’t
+	 * <li><b>cache</b> problems. if we tried to get data from cache and didn't
 	 * succeed</li>
 	 * </ul>
 	 * 
@@ -598,14 +598,14 @@ public class Log implements Callback {
 
 		int what = msg.what;
 		switch (what) {
-		case __FLUSH:
-
-			/*
-			 * save all logs in batch on disk
-			 */
+		case __FLUSH: 
+			
+			// save all logs in batch on disk
 			Cache.getInstance().flush(mLogQueueList);
 			// we can clear the collection without being worried
 			mLogQueueList.clear();
+			// clean the cache (TODO - maybe better to clean not in every flush)
+			Cache.getInstance().clean();
 
 			// check for post task
 			int taskKey = msg.arg1;

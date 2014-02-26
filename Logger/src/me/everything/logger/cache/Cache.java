@@ -4,13 +4,14 @@ import java.io.File;
 import java.util.List;
 
 import me.everything.logger.Log;
-import me.everything.logger.LogConfiguration;
 import me.everything.logger.Log.LogEntry;
+import me.everything.logger.LogConfiguration;
 import me.everything.logger.formatters.LogEntryFormatter;
 import me.everything.logger.helpers.Constants;
 import me.everything.logger.tools.date.DateTool;
 
 import com.sromku.simple.storage.Storage;
+import com.sromku.simple.storage.helpers.OrderType;
 import com.sromku.simple.storage.helpers.SizeUnit;
 
 /**
@@ -31,7 +32,7 @@ public class Cache {
 
 		// init storage
 		mStorage = mConfiguration.getStorage();
-		String rootDir = mConfiguration.getRootDir(); 
+		String rootDir = mConfiguration.getRootDir();
 		// create root folder if such doesn't exist
 		createFolder(rootDir);
 
@@ -100,7 +101,7 @@ public class Cache {
 		for (LogEntry logEntry : logs) {
 			String dirName = null;
 			String fileName = null;
-			String rootDir = mConfiguration.getRootDir(); 
+			String rootDir = mConfiguration.getRootDir();
 			switch (logEntry.type) {
 			case Log.Types.RECEIVER:
 				dirName = Constants.DIR_RECEIVERS(rootDir);
@@ -118,13 +119,34 @@ public class Cache {
 	}
 
 	/**
-	 * TODO - Clean cache that is more than passed history days
+	 * Clean cache that is more than passed history days or/and clean cache that
+	 * takes more than this passed size.
 	 */
-	public void clean(int days) {
-
-		// mStorage.deleteFile(Constants.DIR_APP, Constants.LOG_APP);
-		// mStorage.deleteFile(Constants.DIR_RECEIVERS, Constants.LOG_RECEIVER);
-
+	public void clean() {
+		int maxHistoryDays = mConfiguration.getMaxHistoryDays();
+		long now = DateTool.getNowDateMillis();
+		double bytesSizeLimit = mConfiguration.getFilesDayMbSizeLimit() * SizeUnit.MB.inBytes();
+		List<File> files = mStorage.getFiles(Constants.DIR_APP(mConfiguration.getRootDir()), OrderType.DATE);
+		if (files.size() > 0) {
+			int i = 0;
+			while (i < files.size()) {
+				File file = files.get(i);
+				bytesSizeLimit = bytesSizeLimit - file.length();
+				boolean deleted = false;
+				if (bytesSizeLimit < 0) {
+					if (!file.isDirectory()) {
+						deleted = file.delete();
+					}
+				}
+				if (!deleted) {
+					long lastModified = file.lastModified();
+					if ((lastModified + (maxHistoryDays*24*60*60*1000)) - now < 0) {
+						file.delete();
+					}
+				}
+				i++;
+			}
+		}
 	}
 
 	/**
@@ -141,15 +163,14 @@ public class Cache {
 		if (!mStorage.isFileExist(dirName, fileName)) {
 			// we check if file is missing, if so we first create it
 			createFile(dirName, fileName);
-		}
-		else {
+		} else {
 			// we check for max size of the file. if it reached the max size,
 			// then we rename the file
 			File file = mStorage.getFile(dirName, fileName);
 			if (mStorage.getSize(file, SizeUnit.MB) > mConfiguration.getFileMaxMbSize()) {
 				String newName = getLogFileNameTimeToday(fileNamePattern);
 				mStorage.rename(file, newName);
-				
+
 				// create the file of the day from 0
 				createFile(dirName, fileName);
 			}
@@ -223,9 +244,10 @@ public class Cache {
 		String fileName = String.format(logFileNamePattern, dateStr);
 		return fileName;
 	}
-	
+
 	/**
-	 * Get the file name of the log of today. For example: log_app_25_04 (12:04).txt
+	 * Get the file name of the log of today. For example: log_app_25_04
+	 * (12:04).txt
 	 * 
 	 * @param logFileNamePattern
 	 * @return
